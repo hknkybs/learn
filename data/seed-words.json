@@ -1,0 +1,393 @@
+[
+  {
+    "lemma": "achieve",
+    "partOfSpeech": "verb",
+    "cefr": "B1",
+    "ipa": "/əˈtʃiːv/",
+    "translationTr": "başarmak, elde etmek",
+    "nuanceTr": "Türkçede 'başarmak' hem achieve hem succeed ile karşılanır. Achieve somut bir hedefe ulaşmayı vurgular (achieve a goal); succeed daha genel bir başarıyı anlatır.",
+    "forms": [
+      { "formType": "base", "text": "achieve" },
+      { "formType": "third_person_singular", "text": "achieves" },
+      { "formType": "past_simple", "text": "achieved" },
+      { "formType": "past_participle", "text": "achieved" },
+      { "formType": "gerund", "text": "achieving" }
+    ],
+    "examples": [
+      { "tense": "present_simple", "textEn": "She achieves her monthly targets without much stress.", "textTr": "Aylık hedeflerini fazla zorlanmadan başarıyor." },
+      { "tense": "present_continuous", "textEn": "We are achieving better results this quarter.", "textTr": "Bu çeyrekte daha iyi sonuçlar elde ediyoruz." },
+      { "tense": "past_simple", "textEn": "The team achieved a 20% increase in sales last year.", "textTr": "Ekip geçen yıl satışlarda %20'lik bir artış elde etti." },
+      { "tense": "future", "textEn": "I will achieve this milestone by the end of the month.", "textTr": "Bu kilometre taşını ay sonuna kadar başaracağım." }
+    ]
+  },
+  {
+    "lemma": "afford",
+    "partOfSpeech": "verb",
+    "cefr": "B1",
+    "ipa": "/əˈfɔːrd/",
+    "translationTr": "gücü yetmek, altından kalkabilmek",
+    "nuanceTr": "Türkçede birebir karşılığı yoktur çünkü biz bunu 'param yetiyor' gibi ayrı bir yapıyla ifade ederiz. Afford neredeyse her zaman can/can't ile kullanılır: I can't afford it (yanlış: I don't afford it).",
+    "forms": [
+      { "formType": "base", "text": "afford" },
+      { "formType": "third_person_singular", "text": "affords" },
+      { "formType": "past_simple", "text": "afforded" },
+      { "formType": "past_participle", "text": "afforded" },
+      { "formType": "gerund", "text": "affording" }
+    ],
+    "examples": [
+      { "tense": "present_simple", "textEn": "He can't afford a new laptop right now.", "textTr": "Şu anda yeni bir dizüstü bilgisayarın altından kalkamaz." },
+      { "tense": "present_continuous", "textEn": "We are affording this trip by cutting other expenses.", "textTr": "Bu geziyi diğer masrafları kısarak karşılıyoruz." },
+      { "tense": "past_simple", "textEn": "They couldn't afford the rent last month.", "textTr": "Geçen ay kirayı ödeyecek güçleri yoktu." },
+      { "tense": "future", "textEn": "We won't be able to afford this if prices rise again.", "textTr": "Fiyatlar tekrar artarsa bunun altından kalkamayacağız." }
+    ]
+  },
+  {
+    "lemma": "address",
+    "partOfSpeech": "verb",
+    "cefr": "B2",
+    "ipa": "/əˈdres/",
+    "translationTr": "(bir soruna) el atmak, ele almak",
+    "nuanceTr": "Türkçe konuşanlar genelde 'address' kelimesini sadece isim (adres) olarak bilir. Fiil hali çok yaygındır ve 'deal with / handle' ile eşanlamlıdır: address the problem = soruna el atmak.",
+    "forms": [
+      { "formType": "base", "text": "address" },
+      { "formType": "third_person_singular", "text": "addresses" },
+      { "formType": "past_simple", "text": "addressed" },
+      { "formType": "past_participle", "text": "addressed" },
+      { "formType": "gerund", "text": "addressing" }
+    ],
+    "examples": [
+      { "tense": "present_simple", "textEn": "This report addresses the main concerns of the client.", "textTr": "Bu rapor müşterinin ana endişelerini ele alıyor." },
+      { "tense": "present_continuous", "textEn": "We are addressing the security issue as we speak.", "textTr": "Güvenlik sorununu tam da şu anda ele alıyoruz." },
+      { "tense": "past_simple", "textEn": "The manager addressed the complaint immediately.", "textTr": "Yönetici şikayeti hemen ele aldı." },
+      { "tense": "future", "textEn": "We will address this in tomorrow's meeting.", "textTr": "Bunu yarınki toplantıda ele alacağız." }
+    ]
+  },
+  {
+    "lemma": "postpone",
+    "partOfSpeech": "verb",
+    "cefr": "B1",
+    "ipa": "/pəʊstˈpəʊn/",
+    "translationTr": "ertelemek",
+    "nuanceTr": "'Delay' ile karıştırılır. Postpone genelde bilinçli, planlı bir erteleme (postpone the meeting); delay çoğunlukla istem dışı bir gecikmeyi anlatır (the flight was delayed).",
+    "forms": [
+      { "formType": "base", "text": "postpone" },
+      { "formType": "third_person_singular", "text": "postpones" },
+      { "formType": "past_simple", "text": "postponed" },
+      { "formType": "past_participle", "text": "postponed" },
+      { "formType": "gerund", "text": "postponing" }
+    ],
+    "examples": [
+      { "tense": "present_simple", "textEn": "The committee postpones the vote whenever there's disagreement.", "textTr": "Komite, anlaşmazlık olduğunda oylamayı erteliyor." },
+      { "tense": "present_continuous", "textEn": "We are postponing the launch until next month.", "textTr": "Lansmanı bir sonraki aya erteliyoruz." },
+      { "tense": "past_simple", "textEn": "They postponed the interview because of the storm.", "textTr": "Fırtına yüzünden mülakatı ertelediler." },
+      { "tense": "future", "textEn": "I will postpone my vacation if the project isn't finished.", "textTr": "Proje bitmezse tatilimi erteleyeceğim." }
+    ]
+  },
+  {
+    "lemma": "consider",
+    "partOfSpeech": "verb",
+    "cefr": "B1",
+    "ipa": "/kənˈsɪdər/",
+    "translationTr": "göz önünde bulundurmak, düşünmek",
+    "nuanceTr": "Klasik bir hata: consider bir eylemi kastederken -ing (gerund) alır, to-infinitive almaz. Doğru: I'm considering leaving. Yanlış: I'm considering to leave.",
+    "forms": [
+      { "formType": "base", "text": "consider" },
+      { "formType": "third_person_singular", "text": "considers" },
+      { "formType": "past_simple", "text": "considered" },
+      { "formType": "past_participle", "text": "considered" },
+      { "formType": "gerund", "text": "considering" }
+    ],
+    "examples": [
+      { "tense": "present_simple", "textEn": "She always considers the risks before deciding.", "textTr": "Karar vermeden önce her zaman riskleri göz önünde bulundurur." },
+      { "tense": "present_continuous", "textEn": "I'm considering changing my job this year.", "textTr": "Bu yıl işimi değiştirmeyi düşünüyorum." },
+      { "tense": "past_simple", "textEn": "We considered several options before choosing this one.", "textTr": "Bunu seçmeden önce birkaç seçeneği değerlendirdik." },
+      { "tense": "future", "textEn": "I will consider your proposal carefully.", "textTr": "Teklifini dikkatle değerlendireceğim." }
+    ]
+  },
+  {
+    "lemma": "handle",
+    "partOfSpeech": "verb",
+    "cefr": "B1",
+    "ipa": "/ˈhændl/",
+    "translationTr": "idare etmek, halletmek",
+    "nuanceTr": "Türkçedeki 'halletmek' ile neredeyse birebir örtüşür, ama unutmayın: handle aynı zamanda 'elle tutmak/dokunmak' anlamına da gelir (handle with care). Bağlam belirleyicidir.",
+    "forms": [
+      { "formType": "base", "text": "handle" },
+      { "formType": "third_person_singular", "text": "handles" },
+      { "formType": "past_simple", "text": "handled" },
+      { "formType": "past_participle", "text": "handled" },
+      { "formType": "gerund", "text": "handling" }
+    ],
+    "examples": [
+      { "tense": "present_simple", "textEn": "He handles customer complaints very calmly.", "textTr": "Müşteri şikayetlerini çok sakin bir şekilde idare ediyor." },
+      { "tense": "present_continuous", "textEn": "I'm handling three projects at the same time.", "textTr": "Aynı anda üç projeyi idare ediyorum." },
+      { "tense": "past_simple", "textEn": "She handled the crisis better than anyone expected.", "textTr": "Krizi herkesin beklediğinden daha iyi idare etti." },
+      { "tense": "future", "textEn": "Don't worry, I will handle it.", "textTr": "Merak etme, ben hallederim." }
+    ]
+  },
+  {
+    "lemma": "overwhelm",
+    "partOfSpeech": "verb",
+    "cefr": "B2",
+    "ipa": "/ˌəʊvəˈwelm/",
+    "translationTr": "bunaltmak, altında ezmek",
+    "nuanceTr": "Türkçe konuşanlar genelde aktif çatıyla kurmaya çalışır ('I overwhelm'), oysa kendi duygumuzu anlatırken neredeyse hep pasif kullanılır: I am overwhelmed (bunaldım), değil I overwhelm.",
+    "forms": [
+      { "formType": "base", "text": "overwhelm" },
+      { "formType": "third_person_singular", "text": "overwhelms" },
+      { "formType": "past_simple", "text": "overwhelmed" },
+      { "formType": "past_participle", "text": "overwhelmed" },
+      { "formType": "gerund", "text": "overwhelming" }
+    ],
+    "examples": [
+      { "tense": "present_simple", "textEn": "The amount of information overwhelms new employees.", "textTr": "Bilgi miktarı yeni çalışanları bunaltıyor." },
+      { "tense": "present_continuous", "textEn": "I'm feeling overwhelmed by all these deadlines.", "textTr": "Tüm bu son teslim tarihleri yüzünden bunalmış hissediyorum." },
+      { "tense": "past_simple", "textEn": "The workload overwhelmed her in the first week.", "textTr": "İş yükü onu ilk hafta bunalttı." },
+      { "tense": "future", "textEn": "This task might overwhelm anyone without proper training.", "textTr": "Bu görev, doğru eğitim olmadan herkesi bunaltabilir." }
+    ]
+  },
+  {
+    "lemma": "clarify",
+    "partOfSpeech": "verb",
+    "cefr": "B2",
+    "ipa": "/ˈklærɪfaɪ/",
+    "translationTr": "açıklığa kavuşturmak",
+    "nuanceTr": "'Explain' ile karıştırılır; explain bir şeyi baştan anlatmaktır, clarify zaten söylenmiş ama belirsiz kalmış bir noktayı netleştirmektir.",
+    "forms": [
+      { "formType": "base", "text": "clarify" },
+      { "formType": "third_person_singular", "text": "clarifies" },
+      { "formType": "past_simple", "text": "clarified" },
+      { "formType": "past_participle", "text": "clarified" },
+      { "formType": "gerund", "text": "clarifying" }
+    ],
+    "examples": [
+      { "tense": "present_simple", "textEn": "This document clarifies the new policy.", "textTr": "Bu belge yeni politikayı açıklığa kavuşturuyor." },
+      { "tense": "present_continuous", "textEn": "I'm clarifying a few points before we proceed.", "textTr": "Devam etmeden önce birkaç noktayı netleştiriyorum." },
+      { "tense": "past_simple", "textEn": "She clarified her position during the call.", "textTr": "Görüşme sırasında pozisyonunu netleştirdi." },
+      { "tense": "future", "textEn": "I will clarify this with the client tomorrow.", "textTr": "Bunu yarın müşteriyle netleştireceğim." }
+    ]
+  },
+  {
+    "lemma": "prioritize",
+    "partOfSpeech": "verb",
+    "cefr": "B2",
+    "ipa": "/praɪˈɒrɪtaɪz/",
+    "translationTr": "önceliklendirmek",
+    "nuanceTr": "İş İngilizcesinde çok sık kullanılır; Türkçede tek kelimelik doğal bir karşılığı olmadığı için genelde 'önceliğe koymak' gibi dolaylı çevrilir.",
+    "forms": [
+      { "formType": "base", "text": "prioritize" },
+      { "formType": "third_person_singular", "text": "prioritizes" },
+      { "formType": "past_simple", "text": "prioritized" },
+      { "formType": "past_participle", "text": "prioritized" },
+      { "formType": "gerund", "text": "prioritizing" }
+    ],
+    "examples": [
+      { "tense": "present_simple", "textEn": "Good managers prioritize tasks based on impact.", "textTr": "İyi yöneticiler görevleri etkilerine göre önceliklendirir." },
+      { "tense": "present_continuous", "textEn": "We are prioritizing bug fixes over new features this sprint.", "textTr": "Bu sprintte hata düzeltmelerini yeni özelliklerin önüne alıyoruz." },
+      { "tense": "past_simple", "textEn": "She prioritized customer issues over internal requests.", "textTr": "Müşteri sorunlarını iç talepler yerine önceliklendirdi." },
+      { "tense": "future", "textEn": "I will prioritize this ticket first thing tomorrow.", "textTr": "Yarın ilk iş bu talebi önceliklendireceğim." }
+    ]
+  },
+  {
+    "lemma": "delegate",
+    "partOfSpeech": "verb",
+    "cefr": "B2",
+    "ipa": "/ˈdelɪɡeɪt/",
+    "translationTr": "(yetki/görev) devretmek",
+    "nuanceTr": "Fiil olarak vurgu son hecede (de-le-GATE), isim olarak (temsilci) vurgu ilk hecededir (DEL-e-gate). Türkçede vurgu ayrımı olmadığı için bu fark genelde atlanır.",
+    "forms": [
+      { "formType": "base", "text": "delegate" },
+      { "formType": "third_person_singular", "text": "delegates" },
+      { "formType": "past_simple", "text": "delegated" },
+      { "formType": "past_participle", "text": "delegated" },
+      { "formType": "gerund", "text": "delegating" }
+    ],
+    "examples": [
+      { "tense": "present_simple", "textEn": "A good leader delegates tasks instead of doing everything alone.", "textTr": "İyi bir lider her şeyi tek başına yapmak yerine görevleri devreder." },
+      { "tense": "present_continuous", "textEn": "I'm delegating this project to the junior team.", "textTr": "Bu projeyi junior ekibe devrediyorum." },
+      { "tense": "past_simple", "textEn": "He delegated the report to his assistant.", "textTr": "Raporu asistanına devretti." },
+      { "tense": "future", "textEn": "I will delegate more once I trust the new hires.", "textTr": "Yeni işe alınanlara güvendiğimde daha fazla görev devredeceğim." }
+    ]
+  },
+  {
+    "lemma": "escalate",
+    "partOfSpeech": "verb",
+    "cefr": "B2",
+    "ipa": "/ˈeskəleɪt/",
+    "translationTr": "büyütmek, üst mercie taşımak",
+    "nuanceTr": "İş İngilizcesinde 'escalate the issue' kalıbı çok yaygındır: sorunu daha yetkili birine iletmek. Günlük dilde ise bir durumun kötüye gitmesi/büyümesi anlamına da gelir.",
+    "forms": [
+      { "formType": "base", "text": "escalate" },
+      { "formType": "third_person_singular", "text": "escalates" },
+      { "formType": "past_simple", "text": "escalated" },
+      { "formType": "past_participle", "text": "escalated" },
+      { "formType": "gerund", "text": "escalating" }
+    ],
+    "examples": [
+      { "tense": "present_simple", "textEn": "He escalates every issue straight to the director.", "textTr": "Her sorunu doğrudan direktöre taşıyor." },
+      { "tense": "present_continuous", "textEn": "We are escalating this ticket because it's blocking the release.", "textTr": "Bu talebi büyütüyoruz çünkü yayını engelliyor." },
+      { "tense": "past_simple", "textEn": "The conflict escalated quickly after the meeting.", "textTr": "Toplantıdan sonra anlaşmazlık hızla büyüdü." },
+      { "tense": "future", "textEn": "I will escalate this if there's no response by Friday.", "textTr": "Cuma'ya kadar yanıt gelmezse bunu üst mercie taşıyacağım." }
+    ]
+  },
+  {
+    "lemma": "leverage",
+    "partOfSpeech": "verb",
+    "cefr": "C1",
+    "ipa": "/ˈliːvərɪdʒ/",
+    "translationTr": "avantaj olarak kullanmak, faydalanmak",
+    "nuanceTr": "İş İngilizcesinde çok kullanılan ama Türkçeye tam oturmayan bir kelime. 'Kaldıraç' (finans) anlamındaki isim halinden gelir; fiil olarak 'elindeki bir kaynağı avantaja çevirmek' demektir.",
+    "forms": [
+      { "formType": "base", "text": "leverage" },
+      { "formType": "third_person_singular", "text": "leverages" },
+      { "formType": "past_simple", "text": "leveraged" },
+      { "formType": "past_participle", "text": "leveraged" },
+      { "formType": "gerund", "text": "leveraging" }
+    ],
+    "examples": [
+      { "tense": "present_simple", "textEn": "The company leverages its brand to enter new markets.", "textTr": "Şirket yeni pazarlara girmek için markasından faydalanıyor." },
+      { "tense": "present_continuous", "textEn": "We are leveraging existing tools instead of building from scratch.", "textTr": "Sıfırdan inşa etmek yerine mevcut araçlardan faydalanıyoruz." },
+      { "tense": "past_simple", "textEn": "She leveraged her network to find a new job.", "textTr": "Yeni bir iş bulmak için bağlantılarından faydalandı." },
+      { "tense": "future", "textEn": "We will leverage this partnership to grow faster.", "textTr": "Daha hızlı büyümek için bu ortaklıktan faydalanacağız." }
+    ]
+  },
+  {
+    "lemma": "negotiate",
+    "partOfSpeech": "verb",
+    "cefr": "B2",
+    "ipa": "/nɪˈɡəʊʃieɪt/",
+    "translationTr": "müzakere etmek, pazarlık yapmak",
+    "nuanceTr": "Türkçede 'pazarlık' kelimesi biraz gündelik/olumsuz çağrışım yapabilir (pazar yerinde pazarlık gibi); İngilizcede negotiate resmi iş görüşmelerinde de rahatça kullanılır.",
+    "forms": [
+      { "formType": "base", "text": "negotiate" },
+      { "formType": "third_person_singular", "text": "negotiates" },
+      { "formType": "past_simple", "text": "negotiated" },
+      { "formType": "past_participle", "text": "negotiated" },
+      { "formType": "gerund", "text": "negotiating" }
+    ],
+    "examples": [
+      { "tense": "present_simple", "textEn": "She negotiates contracts for a living.", "textTr": "Geçimini sözleşme müzakere ederek sağlıyor." },
+      { "tense": "present_continuous", "textEn": "We are negotiating a better deal with the supplier.", "textTr": "Tedarikçiyle daha iyi bir anlaşma için müzakere ediyoruz." },
+      { "tense": "past_simple", "textEn": "They negotiated a lower price for the equipment.", "textTr": "Ekipman için daha düşük bir fiyat konusunda anlaştılar." },
+      { "tense": "future", "textEn": "I will negotiate my salary at the next review.", "textTr": "Bir sonraki değerlendirmede maaşımı müzakere edeceğim." }
+    ]
+  },
+  {
+    "lemma": "reliable",
+    "partOfSpeech": "adjective",
+    "cefr": "B1",
+    "ipa": "/rɪˈlaɪəbl/",
+    "translationTr": "güvenilir",
+    "nuanceTr": "Üç heceden uzun sıfatlar -er/-est almaz, 'more/most' ile kullanılır: more reliable, most reliable. 'Relianter' gibi bir üretim yaygın bir TR hatasıdır.",
+    "forms": [
+      { "formType": "comparative", "text": "more reliable" },
+      { "formType": "superlative", "text": "most reliable" }
+    ],
+    "examples": [
+      { "tense": "present_simple", "textEn": "This supplier is reliable; they never miss a deadline.", "textTr": "Bu tedarikçi güvenilirdir; hiçbir zaman teslim tarihini kaçırmaz." },
+      { "tense": "past_simple", "textEn": "The old system wasn't reliable at all.", "textTr": "Eski sistem hiç güvenilir değildi." },
+      { "tense": "future", "textEn": "The new server will be much more reliable.", "textTr": "Yeni sunucu çok daha güvenilir olacak." }
+    ]
+  },
+  {
+    "lemma": "consistent",
+    "partOfSpeech": "adjective",
+    "cefr": "B2",
+    "ipa": "/kənˈsɪstənt/",
+    "translationTr": "tutarlı",
+    "nuanceTr": "Türkçede 'tutarlı' hem 'mantıklı/çelişkisiz' hem 'düzenli/istikrarlı' anlamına gelir; İngilizcede consistent ikinci anlama (istikrarlı, aynı kalan) daha yakındır.",
+    "forms": [
+      { "formType": "comparative", "text": "more consistent" },
+      { "formType": "superlative", "text": "most consistent" }
+    ],
+    "examples": [
+      { "tense": "present_simple", "textEn": "Her performance is consistent across every project.", "textTr": "Performansı her projede tutarlı." },
+      { "tense": "past_simple", "textEn": "The results were not consistent with our expectations.", "textTr": "Sonuçlar beklentilerimizle tutarlı değildi." },
+      { "tense": "future", "textEn": "We need to be more consistent with our messaging.", "textTr": "Mesajlarımızda daha tutarlı olmamız gerekecek." }
+    ]
+  },
+  {
+    "lemma": "flexible",
+    "partOfSpeech": "adjective",
+    "cefr": "B1",
+    "ipa": "/ˈfleksəbl/",
+    "translationTr": "esnek",
+    "nuanceTr": "İş bağlamında hem 'esnek çalışma saatleri' (flexible hours) hem 'uzlaşmaya açık kişi' (a flexible person) anlamında kullanılır.",
+    "forms": [
+      { "formType": "comparative", "text": "more flexible" },
+      { "formType": "superlative", "text": "most flexible" }
+    ],
+    "examples": [
+      { "tense": "present_simple", "textEn": "Our schedule is flexible this week.", "textTr": "Bu hafta programımız esnek." },
+      { "tense": "past_simple", "textEn": "The old policy wasn't flexible enough for remote workers.", "textTr": "Eski politika uzaktan çalışanlar için yeterince esnek değildi." },
+      { "tense": "future", "textEn": "We will need to be flexible about the launch date.", "textTr": "Lansman tarihi konusunda esnek olmamız gerekecek." }
+    ]
+  },
+  {
+    "lemma": "straightforward",
+    "partOfSpeech": "adjective",
+    "cefr": "B2",
+    "ipa": "/ˌstreɪtˈfɔːwəd/",
+    "translationTr": "basit, anlaşılır, doğrudan",
+    "nuanceTr": "'Easy' ile karıştırılır; straightforward bir şeyin karmaşık olmadığını, adımlarının net olduğunu vurgular; her zaman 'kolay' anlamına gelmez.",
+    "forms": [
+      { "formType": "comparative", "text": "more straightforward" },
+      { "formType": "superlative", "text": "most straightforward" }
+    ],
+    "examples": [
+      { "tense": "present_simple", "textEn": "The instructions are straightforward.", "textTr": "Talimatlar anlaşılır." },
+      { "tense": "past_simple", "textEn": "The setup process was surprisingly straightforward.", "textTr": "Kurulum süreci şaşırtıcı derecede basitti." },
+      { "tense": "future", "textEn": "With this template, the report will be more straightforward to write.", "textTr": "Bu şablonla raporu yazmak daha kolay olacak." }
+    ]
+  },
+  {
+    "lemma": "feasible",
+    "partOfSpeech": "adjective",
+    "cefr": "C1",
+    "ipa": "/ˈfiːzəbl/",
+    "translationTr": "uygulanabilir, mümkün",
+    "nuanceTr": "'Possible' ile karışır; feasible özellikle bir planın/projenin pratikte gerçekleştirilebilir olduğunu vurgular, sadece teorik olasılığı değil.",
+    "forms": [
+      { "formType": "comparative", "text": "more feasible" },
+      { "formType": "superlative", "text": "most feasible" }
+    ],
+    "examples": [
+      { "tense": "present_simple", "textEn": "This solution is not feasible within our current budget.", "textTr": "Bu çözüm mevcut bütçemizle uygulanabilir değil." },
+      { "tense": "past_simple", "textEn": "The original plan wasn't feasible, so we changed it.", "textTr": "Orijinal plan uygulanabilir değildi, bu yüzden değiştirdik." },
+      { "tense": "future", "textEn": "With more time, this approach will be more feasible.", "textTr": "Daha fazla zamanla bu yaklaşım daha uygulanabilir olacak." }
+    ]
+  },
+  {
+    "lemma": "thorough",
+    "partOfSpeech": "adjective",
+    "cefr": "B2",
+    "ipa": "/ˈθʌrə/",
+    "translationTr": "kapsamlı, titiz, detaylı",
+    "nuanceTr": "Telaffuzu Türkçe konuşanlar için zordur (through kelimesiyle karıştırılmamalı, farklı okunur: /ˈθʌrə/). Bir işin eksiksiz ve dikkatli yapıldığını vurgular.",
+    "forms": [
+      { "formType": "comparative", "text": "more thorough" },
+      { "formType": "superlative", "text": "most thorough" }
+    ],
+    "examples": [
+      { "tense": "present_simple", "textEn": "She is very thorough when reviewing contracts.", "textTr": "Sözleşmeleri incelerken çok titizdir." },
+      { "tense": "past_simple", "textEn": "The investigation was thorough and took two weeks.", "textTr": "Soruşturma kapsamlıydı ve iki hafta sürdü." },
+      { "tense": "future", "textEn": "We will do a thorough review before signing.", "textTr": "İmzalamadan önce kapsamlı bir inceleme yapacağız." }
+    ]
+  },
+  {
+    "lemma": "deadline",
+    "partOfSpeech": "noun",
+    "cefr": "A2",
+    "ipa": "/ˈdedlaɪn/",
+    "translationTr": "son teslim tarihi",
+    "nuanceTr": "Türkçede doğrudan ödünç alınıp kullanılır ('deadline'ım var gibi), ama İngilizcede 'miss the deadline' (tarihi kaçırmak) ve 'meet the deadline' (tarihe yetişmek) kalıplarını doğru kullanmak önemlidir.",
+    "forms": [
+      { "formType": "plural", "text": "deadlines" }
+    ],
+    "examples": [
+      { "tense": "present_simple", "textEn": "We always meet our deadlines.", "textTr": "Son teslim tarihlerimize her zaman yetişiriz." },
+      { "tense": "past_simple", "textEn": "They missed the deadline by two days.", "textTr": "Son teslim tarihini iki gün kaçırdılar." },
+      { "tense": "future", "textEn": "The deadline will be extended by a week.", "textTr": "Son teslim tarihi bir hafta uzatılacak." }
+    ]
+  }
+]
