@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore, useDueWords } from '../state/store';
 import { useTheme } from '../theme/ThemeContext';
@@ -7,6 +7,9 @@ import { partOfSpeechLabels, radius, spacing, tenseLabels } from '../theme';
 import { RootScreenProps } from '../navigation/types';
 import { ReviewGrade, Word } from '../types';
 import { shuffle } from '../lib/batch';
+
+type LapCounts = { good: number; hard: number; again: number };
+const EMPTY_LAP_COUNTS: LapCounts = { good: 0, hard: 0, again: 0 };
 
 type Props = RootScreenProps<'Review'>;
 
@@ -19,6 +22,8 @@ export function ReviewScreen({ navigation }: Props) {
   const [revealed, setRevealed] = useState(false);
   const [practiceQueue, setPracticeQueue] = useState<Word[] | null>(null);
   const [practiceIndex, setPracticeIndex] = useState(0);
+  const [lapCounts, setLapCounts] = useState<LapCounts>(EMPTY_LAP_COUNTS);
+  const [lapSummary, setLapSummary] = useState<LapCounts | null>(null);
 
   const word = practiceQueue ? practiceQueue[practiceIndex] : dueWords[0];
 
@@ -37,6 +42,38 @@ export function ReviewScreen({ navigation }: Props) {
       }
     }
   }, [dueWords.length, practiceQueue, allWords, progressByWordId]);
+
+  function continueLap() {
+    if (!practiceQueue) return;
+    setPracticeQueue(shuffle(practiceQueue));
+    setPracticeIndex(0);
+    setLapCounts(EMPTY_LAP_COUNTS);
+    setLapSummary(null);
+  }
+
+  if (lapSummary) {
+    const total = lapSummary.good + lapSummary.hard + lapSummary.again;
+    return (
+      <SafeAreaView style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
+        <Text style={styles.emoji}>🎉</Text>
+        <Text style={[styles.doneTitle, { color: colors.text }]}>Turu tamamladın!</Text>
+        <Text style={[styles.doneSubtitle, { color: colors.textMuted }]}>{total} kelime çalıştın.</Text>
+
+        <View style={styles.summaryRow}>
+          <SummaryChip label="Biliyorum" value={lapSummary.good} color={colors.statusKnown} bg={colors.statusKnownMuted} />
+          <SummaryChip label="Zorlandım" value={lapSummary.hard} color={colors.statusLearning} bg={colors.statusLearningMuted} />
+          <SummaryChip label="Bilmiyorum" value={lapSummary.again} color={colors.danger} bg={colors.dangerMuted} />
+        </View>
+
+        <TouchableOpacity style={[styles.backButton, { backgroundColor: colors.primary }]} onPress={continueLap}>
+          <Text style={styles.backButtonText}>Devam Et</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.linkButton} onPress={() => navigation.goBack()}>
+          <Text style={[styles.linkText, { color: colors.textMuted }]}>Geri Dön</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
 
   if (!word) {
     return (
@@ -57,28 +94,17 @@ export function ReviewScreen({ navigation }: Props) {
     reviewWord(word.id, g);
     if (!practiceQueue) return;
 
+    const key = g === 'good' ? 'good' : g === 'hard' ? 'hard' : 'again';
+    const updatedCounts = { ...lapCounts, [key]: lapCounts[key] + 1 };
+
     const next = practiceIndex + 1;
     if (next < practiceQueue.length) {
+      setLapCounts(updatedCounts);
       setPracticeIndex(next);
       return;
     }
 
-    const message = 'Öğrenme listesindeki tüm kelimeleri tekrar ettin. Devam etmek ister misin?';
-    const continueLap = () => {
-      setPracticeQueue(shuffle(practiceQueue));
-      setPracticeIndex(0);
-    };
-
-    if (Platform.OS === 'web') {
-      if (window.confirm(message)) continueLap();
-      else navigation.goBack();
-      return;
-    }
-
-    Alert.alert('Liste tamamlandı', message, [
-      { text: 'Geri Dön', style: 'cancel', onPress: () => navigation.goBack() },
-      { text: 'Devam Et', onPress: continueLap },
-    ]);
+    setLapSummary(updatedCounts);
   }
 
   return (
@@ -130,6 +156,15 @@ export function ReviewScreen({ navigation }: Props) {
   );
 }
 
+function SummaryChip({ label, value, color, bg }: { label: string; value: number; color: string; bg: string }) {
+  return (
+    <View style={[styles.summaryChip, { backgroundColor: bg }]}>
+      <Text style={[styles.summaryChipValue, { color }]}>{value}</Text>
+      <Text style={[styles.summaryChipLabel, { color }]}>{label}</Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -162,6 +197,33 @@ const styles = StyleSheet.create({
   backButtonText: {
     color: '#FFFFFF',
     fontWeight: '700',
+  },
+  linkButton: {
+    marginTop: spacing.md,
+  },
+  linkText: {
+    fontWeight: '600',
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginBottom: spacing.lg,
+  },
+  summaryChip: {
+    borderRadius: radius.lg,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+    alignItems: 'center',
+    gap: 2,
+    minWidth: 92,
+  },
+  summaryChipValue: {
+    fontSize: 22,
+    fontWeight: '800',
+  },
+  summaryChipLabel: {
+    fontSize: 12,
+    fontWeight: '600',
   },
   progressLabel: {
     fontSize: 13,
