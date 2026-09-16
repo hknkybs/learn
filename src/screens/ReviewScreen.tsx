@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore, useDueWords } from '../state/store';
 import { useTheme } from '../theme/ThemeContext';
@@ -55,16 +55,30 @@ export function ReviewScreen({ navigation }: Props) {
 
   function grade(g: ReviewGrade) {
     reviewWord(word.id, g);
-    if (practiceQueue) {
-      setPracticeIndex((i) => {
-        const next = i + 1;
-        if (next >= practiceQueue.length) {
-          setPracticeQueue(shuffle(practiceQueue));
-          return 0;
-        }
-        return next;
-      });
+    if (!practiceQueue) return;
+
+    const next = practiceIndex + 1;
+    if (next < practiceQueue.length) {
+      setPracticeIndex(next);
+      return;
     }
+
+    const message = 'Öğrenme listesindeki tüm kelimeleri tekrar ettin. Devam etmek ister misin?';
+    const continueLap = () => {
+      setPracticeQueue(shuffle(practiceQueue));
+      setPracticeIndex(0);
+    };
+
+    if (Platform.OS === 'web') {
+      if (window.confirm(message)) continueLap();
+      else navigation.goBack();
+      return;
+    }
+
+    Alert.alert('Liste tamamlandı', message, [
+      { text: 'Geri Dön', style: 'cancel', onPress: () => navigation.goBack() },
+      { text: 'Devam Et', onPress: continueLap },
+    ]);
   }
 
   return (
