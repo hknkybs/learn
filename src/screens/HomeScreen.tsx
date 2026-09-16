@@ -27,6 +27,9 @@ export function HomeScreen({ navigation }: Props) {
     return { known, learning, fresh, total: words.length };
   }, [words, progressByWordId]);
 
+  const touchedCount = counts.known + counts.learning;
+  const canPractice = touchedCount > 0;
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       <Text style={[styles.title, { color: colors.text }]}>Merhaba 👋</Text>
@@ -39,15 +42,16 @@ export function HomeScreen({ navigation }: Props) {
       </View>
 
       <TouchableOpacity
-        style={[
-          styles.reviewButton,
-          { backgroundColor: colors.primary, opacity: dueWords.length === 0 ? 0.5 : 1, ...shadow.floating },
-        ]}
-        disabled={dueWords.length === 0}
+        style={[styles.reviewButton, { backgroundColor: colors.primary, opacity: canPractice ? 1 : 0.5, ...shadow.floating }]}
+        disabled={!canPractice}
         onPress={() => navigation.navigate('Review')}
       >
         <Text style={styles.reviewButtonText}>
-          {dueWords.length === 0 ? 'Bugünlük tekrar kalmadı 🎉' : `Çalışmaya Başla (${dueWords.length})`}
+          {dueWords.length > 0
+            ? `Çalışmaya Başla (${dueWords.length})`
+            : canPractice
+            ? 'Serbest Pratik Yap'
+            : 'Önce Ayarlar\'dan bir liste oluştur'}
         </Text>
       </TouchableOpacity>
     </SafeAreaView>

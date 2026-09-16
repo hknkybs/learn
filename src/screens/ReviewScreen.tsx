@@ -26,25 +26,28 @@ export function ReviewScreen({ navigation }: Props) {
     setRevealed(false);
   }, [word?.id]);
 
-  function startPractice() {
-    const touched = shuffle(allWords.filter((w) => progressByWordId[w.id]));
-    setPracticeQueue(touched);
-    setPracticeIndex(0);
-  }
+  // Once the day's due queue is empty, seamlessly roll into free practice
+  // over everything already started — no dead-end, no extra tap.
+  useEffect(() => {
+    if (dueWords.length === 0 && !practiceQueue) {
+      const touched = shuffle(allWords.filter((w) => progressByWordId[w.id]));
+      if (touched.length > 0) {
+        setPracticeQueue(touched);
+        setPracticeIndex(0);
+      }
+    }
+  }, [dueWords.length, practiceQueue, allWords, progressByWordId]);
 
   if (!word) {
     return (
       <SafeAreaView style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
-        <Text style={styles.emoji}>🎉</Text>
-        <Text style={[styles.doneTitle, { color: colors.text }]}>Bugünlük planlanan tekrar bitti!</Text>
+        <Text style={styles.emoji}>👋</Text>
+        <Text style={[styles.doneTitle, { color: colors.text }]}>Henüz öğrenmeye başlanmış bir kelime yok</Text>
         <Text style={[styles.doneSubtitle, { color: colors.textMuted }]}>
-          İstersen aynı kelimelerle serbestçe pratik yapmaya devam edebilirsin.
+          Ayarlar'dan haftalık bir liste oluşturarak başlayabilirsin.
         </Text>
-        <TouchableOpacity style={[styles.backButton, { backgroundColor: colors.primary }]} onPress={startPractice}>
-          <Text style={styles.backButtonText}>Yine de Pratik Yap</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.linkButton} onPress={() => navigation.goBack()}>
-          <Text style={[styles.linkText, { color: colors.textMuted }]}>Ana sayfaya dön</Text>
+        <TouchableOpacity style={[styles.backButton, { backgroundColor: colors.primary }]} onPress={() => navigation.goBack()}>
+          <Text style={styles.backButtonText}>Ana sayfaya dön</Text>
         </TouchableOpacity>
       </SafeAreaView>
     );
@@ -145,12 +148,6 @@ const styles = StyleSheet.create({
   backButtonText: {
     color: '#FFFFFF',
     fontWeight: '700',
-  },
-  linkButton: {
-    marginTop: spacing.md,
-  },
-  linkText: {
-    fontWeight: '600',
   },
   progressLabel: {
     fontSize: 13,

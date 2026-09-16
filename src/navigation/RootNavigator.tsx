@@ -72,7 +72,7 @@ export function RootNavigator() {
       <Stack.Navigator screenOptions={{ headerStyle: { backgroundColor: colors.surface }, headerTintColor: colors.text }}>
         <Stack.Screen name="Tabs" component={MainTabs} options={{ headerShown: false }} />
         <Stack.Screen name="WordDetail" component={WordDetailScreen} options={{ title: 'Kelime' }} />
-        <Stack.Screen name="Review" component={ReviewScreen} options={{ title: 'Tekrar', headerShown: false }} />
+        <Stack.Screen name="Review" component={ReviewScreen} options={{ title: 'Tekrar' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
