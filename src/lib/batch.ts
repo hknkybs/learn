@@ -4,7 +4,7 @@ import { Word } from '../types';
 // (1 = most common words, 5 = rarest). Sums to 1.
 const TIER_SHARE: Record<number, number> = { 1: 0.4, 2: 0.3, 3: 0.15, 4: 0.1, 5: 0.05 };
 
-function shuffle<T>(items: T[]): T[] {
+export function shuffle<T>(items: T[]): T[] {
   const copy = [...items];
   for (let i = copy.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));

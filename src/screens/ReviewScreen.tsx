@@ -5,30 +5,46 @@ import { useStore, useDueWords } from '../state/store';
 import { useTheme } from '../theme/ThemeContext';
 import { partOfSpeechLabels, radius, spacing, tenseLabels } from '../theme';
 import { RootScreenProps } from '../navigation/types';
-import { ReviewGrade } from '../types';
+import { ReviewGrade, Word } from '../types';
+import { shuffle } from '../lib/batch';
 
 type Props = RootScreenProps<'Review'>;
 
 export function ReviewScreen({ navigation }: Props) {
   const { colors, shadow } = useTheme();
   const dueWords = useDueWords();
+  const allWords = useStore((s) => s.words);
+  const progressByWordId = useStore((s) => s.progressByWordId);
   const reviewWord = useStore((s) => s.reviewWord);
   const [revealed, setRevealed] = useState(false);
+  const [practiceQueue, setPracticeQueue] = useState<Word[] | null>(null);
+  const [practiceIndex, setPracticeIndex] = useState(0);
 
-  const word = dueWords[0];
+  const word = practiceQueue ? practiceQueue[practiceIndex] : dueWords[0];
 
   useEffect(() => {
     setRevealed(false);
   }, [word?.id]);
 
+  function startPractice() {
+    const touched = shuffle(allWords.filter((w) => progressByWordId[w.id]));
+    setPracticeQueue(touched);
+    setPracticeIndex(0);
+  }
+
   if (!word) {
     return (
       <SafeAreaView style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
         <Text style={styles.emoji}>🎉</Text>
-        <Text style={[styles.doneTitle, { color: colors.text }]}>Bugünlük bu kadar!</Text>
-        <Text style={[styles.doneSubtitle, { color: colors.textMuted }]}>Tüm tekrarları tamamladın.</Text>
-        <TouchableOpacity style={[styles.backButton, { backgroundColor: colors.primary }]} onPress={() => navigation.goBack()}>
-          <Text style={styles.backButtonText}>Ana sayfaya dön</Text>
+        <Text style={[styles.doneTitle, { color: colors.text }]}>Bugünlük planlanan tekrar bitti!</Text>
+        <Text style={[styles.doneSubtitle, { color: colors.textMuted }]}>
+          İstersen aynı kelimelerle serbestçe pratik yapmaya devam edebilirsin.
+        </Text>
+        <TouchableOpacity style={[styles.backButton, { backgroundColor: colors.primary }]} onPress={startPractice}>
+          <Text style={styles.backButtonText}>Yine de Pratik Yap</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.linkButton} onPress={() => navigation.goBack()}>
+          <Text style={[styles.linkText, { color: colors.textMuted }]}>Ana sayfaya dön</Text>
         </TouchableOpacity>
       </SafeAreaView>
     );
@@ -36,11 +52,23 @@ export function ReviewScreen({ navigation }: Props) {
 
   function grade(g: ReviewGrade) {
     reviewWord(word.id, g);
+    if (practiceQueue) {
+      setPracticeIndex((i) => {
+        const next = i + 1;
+        if (next >= practiceQueue.length) {
+          setPracticeQueue(shuffle(practiceQueue));
+          return 0;
+        }
+        return next;
+      });
+    }
   }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <Text style={[styles.progressLabel, { color: colors.textMuted }]}>{dueWords.length} kelime kaldı</Text>
+      <Text style={[styles.progressLabel, { color: colors.textMuted }]}>
+        {practiceQueue ? 'Serbest pratik · istediğin kadar tekrar edebilirsin' : `${dueWords.length} kelime kaldı`}
+      </Text>
 
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
         <View style={[styles.card, { backgroundColor: colors.surface, ...shadow.card }]}>
@@ -106,6 +134,8 @@ const styles = StyleSheet.create({
   doneSubtitle: {
     fontSize: 15,
     marginBottom: spacing.md,
+    textAlign: 'center',
+    paddingHorizontal: spacing.lg,
   },
   backButton: {
     borderRadius: radius.md,
@@ -115,6 +145,12 @@ const styles = StyleSheet.create({
   backButtonText: {
     color: '#FFFFFF',
     fontWeight: '700',
+  },
+  linkButton: {
+    marginTop: spacing.md,
+  },
+  linkText: {
+    fontWeight: '600',
   },
   progressLabel: {
     fontSize: 13,
