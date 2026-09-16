@@ -16,6 +16,9 @@ create table words (
   ipa text,
   translation_tr text not null,
   nuance_tr text,
+  -- 1 = most frequently used in real speech, 5 = rarest. Drives the
+  -- weighted random selection in weekly batches (see src/lib/batch.ts).
+  frequency_score smallint not null default 3 check (frequency_score between 1 and 5),
   created_at timestamptz not null default now()
 );
 
@@ -65,6 +68,18 @@ create table word_progress (
 create index word_progress_user_due_idx on word_progress(user_id, next_review_at);
 
 -- ─────────────────────────────────────────────────────────────────────────
+-- Per-user weekly settings: how many new words to pull into a batch, and
+-- when the current batch was started (used to auto-refresh weekly).
+-- ─────────────────────────────────────────────────────────────────────────
+
+create table user_settings (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  weekly_goal int not null default 20,
+  batch_started_at timestamptz,
+  updated_at timestamptz not null default now()
+);
+
+-- ─────────────────────────────────────────────────────────────────────────
 -- Row Level Security
 -- ─────────────────────────────────────────────────────────────────────────
 
@@ -72,6 +87,7 @@ alter table words enable row level security;
 alter table word_forms enable row level security;
 alter table example_sentences enable row level security;
 alter table word_progress enable row level security;
+alter table user_settings enable row level security;
 
 -- Catalog tables: any signed-in user can read. Writes only via service role
 -- (the import script), so no insert/update/delete policies are defined —
@@ -92,3 +108,11 @@ create policy "users can update own progress" on word_progress
   for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
 create policy "users can delete own progress" on word_progress
   for delete using (auth.uid() = user_id);
+
+-- user_settings: strictly owner-only.
+create policy "users can read own settings" on user_settings
+  for select using (auth.uid() = user_id);
+create policy "users can insert own settings" on user_settings
+  for insert with check (auth.uid() = user_id);
+create policy "users can update own settings" on user_settings
+  for update using (auth.uid() = user_id) with check (auth.uid() = user_id);

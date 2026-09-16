@@ -38,8 +38,15 @@ export interface Word {
   ipa: string | null;
   translationTr: string;
   nuanceTr: string | null;
+  /** 1 = most frequently used in real speech, 5 = rarest. Drives weekly batch selection. */
+  frequencyScore: number;
   forms: WordForm[];
   examples: ExampleSentence[];
+}
+
+export interface UserSettings {
+  weeklyGoal: number;
+  batchStartedAt: number | null;
 }
 
 export interface WordProgress {

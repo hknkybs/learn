@@ -30,6 +30,7 @@ export function WordDetailScreen({ route }: Props) {
           {partOfSpeechLabels[word.partOfSpeech]}
           {word.ipa ? `  ·  ${word.ipa}` : ''}
           {word.cefr ? `  ·  ${word.cefr}` : ''}
+          {`  ·  Sıklık ${word.frequencyScore}/5`}
         </Text>
       </View>
 

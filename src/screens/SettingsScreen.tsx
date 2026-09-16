@@ -1,15 +1,73 @@
-import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Alert, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '../state/store';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme';
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+
 export function SettingsScreen() {
   const { colors, shadow } = useTheme();
   const userEmail = useStore((s) => s.userEmail);
   const words = useStore((s) => s.words);
+  const progressByWordId = useStore((s) => s.progressByWordId);
+  const userSettings = useStore((s) => s.userSettings);
+  const setWeeklyGoal = useStore((s) => s.setWeeklyGoal);
+  const startNewBatch = useStore((s) => s.startNewBatch);
+  const resetProgress = useStore((s) => s.resetProgress);
   const signOut = useStore((s) => s.signOut);
+
+  const [goalInput, setGoalInput] = useState(String(userSettings?.weeklyGoal ?? 20));
+  const [creating, setCreating] = useState(false);
+  const [resultMessage, setResultMessage] = useState<string | null>(null);
+  const [resetting, setResetting] = useState(false);
+
+  useEffect(() => {
+    if (userSettings) setGoalInput(String(userSettings.weeklyGoal));
+  }, [userSettings?.weeklyGoal]);
+
+  const untouchedCount = words.filter((w) => !progressByWordId[w.id]).length;
+  const nextAutoRefresh = userSettings?.batchStartedAt
+    ? new Date(userSettings.batchStartedAt + 7 * DAY_MS).toLocaleDateString('tr-TR')
+    : null;
+
+  async function handleStartBatch() {
+    const goal = Math.max(1, parseInt(goalInput, 10) || 1);
+    setCreating(true);
+    setResultMessage(null);
+    await setWeeklyGoal(goal);
+    const { added, requested } = await startNewBatch(goal);
+    setCreating(false);
+    setResultMessage(
+      added < requested
+        ? `${added} yeni kelime eklendi (havuzda daha fazla yeni kelime kalmadı).`
+        : `${added} yeni kelime öğrenme listene eklendi.`
+    );
+  }
+
+  function handleReset() {
+    const message =
+      'Bildiklerin, öğrendiklerin ve haftalık listen dahil tüm ilerlemen silinecek. Kelime bankasının kendisi etkilenmez. Emin misin?';
+
+    const doReset = async () => {
+      setResetting(true);
+      setResultMessage(null);
+      await resetProgress();
+      setResetting(false);
+      setResultMessage('Tüm ilerleme sıfırlandı.');
+    };
+
+    if (Platform.OS === 'web') {
+      if (window.confirm(message)) doReset();
+      return;
+    }
+
+    Alert.alert('Her şeyi sıfırla', message, [
+      { text: 'Vazgeç', style: 'cancel' },
+      { text: 'Sıfırla', style: 'destructive', onPress: doReset },
+    ]);
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
@@ -22,8 +80,39 @@ export function SettingsScreen() {
 
       <View style={[styles.card, { backgroundColor: colors.surface, ...shadow.card }]}>
         <Text style={[styles.label, { color: colors.textMuted }]}>Kelime dağarcığı</Text>
-        <Text style={[styles.value, { color: colors.text }]}>{words.length} kelime</Text>
+        <Text style={[styles.value, { color: colors.text }]}>{words.length} kelime · {untouchedCount} henüz başlanmadı</Text>
       </View>
+
+      <View style={[styles.card, { backgroundColor: colors.surface, ...shadow.card }]}>
+        <Text style={[styles.label, { color: colors.textMuted }]}>Haftalık kelime hedefi</Text>
+        <TextInput
+          style={[styles.input, { borderColor: colors.border, color: colors.text }]}
+          keyboardType="number-pad"
+          value={goalInput}
+          onChangeText={setGoalInput}
+        />
+        <TouchableOpacity
+          style={[styles.button, { backgroundColor: colors.primary, opacity: creating ? 0.6 : 1 }]}
+          disabled={creating}
+          onPress={handleStartBatch}
+        >
+          <Text style={styles.buttonText}>{creating ? 'Liste oluşturuluyor...' : `${goalInput || 0} Öğrenmeye Başla`}</Text>
+        </TouchableOpacity>
+        {resultMessage ? <Text style={[styles.result, { color: colors.textMuted }]}>{resultMessage}</Text> : null}
+        {nextAutoRefresh ? (
+          <Text style={[styles.hint, { color: colors.textMuted }]}>
+            Otomatik yenileme: {nextAutoRefresh} (bilinen kelimeler hariç, yeni bir liste otomatik eklenir)
+          </Text>
+        ) : null}
+      </View>
+
+      <TouchableOpacity
+        style={[styles.signOutButton, { backgroundColor: colors.dangerMuted, opacity: resetting ? 0.6 : 1 }]}
+        disabled={resetting}
+        onPress={handleReset}
+      >
+        <Text style={[styles.signOutText, { color: colors.danger }]}>{resetting ? 'Sıfırlanıyor...' : 'Her Şeyi Sıfırla'}</Text>
+      </TouchableOpacity>
 
       <TouchableOpacity style={[styles.signOutButton, { backgroundColor: colors.dangerMuted }]} onPress={signOut}>
         <Text style={[styles.signOutText, { color: colors.danger }]}>Çıkış Yap</Text>
@@ -58,6 +147,32 @@ const styles = StyleSheet.create({
   value: {
     fontSize: 16,
     fontWeight: '600',
+  },
+  input: {
+    borderWidth: 1,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 10,
+    fontSize: 16,
+    marginTop: spacing.xs,
+    marginBottom: spacing.sm,
+  },
+  button: {
+    borderRadius: radius.md,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+  },
+  result: {
+    fontSize: 13,
+    marginTop: spacing.sm,
+  },
+  hint: {
+    fontSize: 12,
+    marginTop: spacing.xs,
   },
   signOutButton: {
     borderRadius: radius.md,

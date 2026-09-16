@@ -57,6 +57,7 @@ for (const word of words) {
         ipa: word.ipa ?? null,
         translation_tr: word.translationTr,
         nuance_tr: word.nuanceTr ?? null,
+        frequency_score: word.frequencyScore ?? 3,
       },
       { onConflict: 'lemma' }
     )
