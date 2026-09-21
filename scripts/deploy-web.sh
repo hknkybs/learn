@@ -11,6 +11,12 @@ npx expo export -p web --output-dir dist
 sed -i '' 's#href="/favicon.ico"#href="./favicon.ico"#; s#src="/_expo/#src="./_expo/#; s#<title>learn</title>#<title>Kelime Defteri</title>#' dist/index.html
 touch dist/.nojekyll
 
+# Bundle filename is content-hashed before our path rewrite, so bust caches explicitly.
+sed -i '' "s#\\.js\" defer#.js?v=$(date +%s)\" defer#" dist/index.html
+
+# Asset URLs (fonts, icons) are baked into the JS bundle as "/assets/..."; re-root them under /learn/.
+sed -i '' "s#\"/assets/#\"/learn/assets/#g; s#'/assets/#'/learn/assets/#g" dist/_expo/static/js/web/*.js
+
 # SPA fallback for GitHub Pages (rafgraph/spa-github-pages).
 cat > dist/404.html <<'HTML'
 <!DOCTYPE html>
