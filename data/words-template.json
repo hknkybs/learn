@@ -1,0 +1,76 @@
+[
+  {
+    "lemma": "ensure",
+    "partOfSpeech": "verb",
+    "cefr": "B2",
+    "ipa": "/ɪnˈʃʊr/",
+    "translationTr": "sağlamak, garanti altına almak",
+    "nuanceTr": "Türkçe konuşanlar sık sık 'assure' ve 'insure' ile karıştırır. Ensure bir şeyin olmasını garantiye almaktır (ensure that...), assure birine güvence vermektir, insure sigortalamaktır.",
+    "frequencyScore": 2,
+    "forms": [
+      { "formType": "base", "text": "ensure" },
+      { "formType": "third_person_singular", "text": "ensures" },
+      { "formType": "past_simple", "text": "ensured" },
+      { "formType": "past_participle", "text": "ensured" },
+      { "formType": "gerund", "text": "ensuring" }
+    ],
+    "examples": [
+      { "tense": "present_simple", "textEn": "This checklist ensures that nothing is forgotten.", "textTr": "Bu kontrol listesi hiçbir şeyin unutulmamasını sağlar." },
+      { "tense": "present_continuous", "textEn": "We are ensuring that every user gets a reply.", "textTr": "Her kullanıcının yanıt almasını sağlıyoruz." },
+      { "tense": "past_simple", "textEn": "She ensured the data was backed up before the update.", "textTr": "Güncellemeden önce verilerin yedeklendiğinden emin oldu." },
+      { "tense": "future", "textEn": "I will ensure the report is ready by Friday.", "textTr": "Raporun Cuma'ya hazır olmasını sağlayacağım." }
+    ]
+  },
+  {
+    "lemma": "reasonable",
+    "partOfSpeech": "adjective",
+    "cefr": "B1",
+    "ipa": "/ˈriːznəbl/",
+    "translationTr": "makul, mantıklı",
+    "nuanceTr": "Fiyat için 'makul' (reasonable price) anlamında çok kullanılır. 'Reasonably' zarf hâli 'oldukça, epey' anlamına da gelir.",
+    "frequencyScore": 2,
+    "forms": [
+      { "formType": "comparative", "text": "more reasonable" },
+      { "formType": "superlative", "text": "most reasonable" }
+    ],
+    "examples": [
+      { "tense": "present_simple", "textEn": "The price is reasonable for this quality.", "textTr": "Fiyat bu kalite için makul." },
+      { "tense": "past_simple", "textEn": "His request was perfectly reasonable.", "textTr": "Talebi gayet makuldü." },
+      { "tense": "future", "textEn": "I hope the new deadline will be more reasonable.", "textTr": "Umarım yeni son tarih daha makul olur." }
+    ]
+  },
+  {
+    "lemma": "budget",
+    "partOfSpeech": "noun",
+    "cefr": "B1",
+    "ipa": "/ˈbʌdʒɪt/",
+    "translationTr": "bütçe",
+    "nuanceTr": "Fiil olarak da kullanılır (budget for something = bir şey için bütçe ayırmak). 'On a budget' = kısıtlı bütçeyle.",
+    "frequencyScore": 1,
+    "forms": [
+      { "formType": "singular", "text": "budget" },
+      { "formType": "plural", "text": "budgets" }
+    ],
+    "examples": [
+      { "tense": "present_simple", "textEn": "Our budget is tight this quarter.", "textTr": "Bu çeyrekte bütçemiz kısıtlı." },
+      { "tense": "past_simple", "textEn": "The project went over budget.", "textTr": "Proje bütçeyi aştı." },
+      { "tense": "future", "textEn": "The budget will be approved next week.", "textTr": "Bütçe önümüzdeki hafta onaylanacak." }
+    ]
+  },
+  {
+    "lemma": "give up",
+    "partOfSpeech": "phrase",
+    "cefr": "A2",
+    "ipa": "/ɡɪv ʌp/",
+    "translationTr": "vazgeçmek, bırakmak",
+    "nuanceTr": "Phrasal verb. Ardından isim ya da -ing gelir: give up smoking (doğru), give up to smoke (yanlış).",
+    "frequencyScore": 1,
+    "forms": [],
+    "examples": [
+      { "tense": "present_simple", "textEn": "He never gives up on his goals.", "textTr": "Hedeflerinden asla vazgeçmez." },
+      { "tense": "present_continuous", "textEn": "I'm giving up sugar this month.", "textTr": "Bu ay şekeri bırakıyorum." },
+      { "tense": "past_simple", "textEn": "They gave up after the third attempt.", "textTr": "Üçüncü denemeden sonra vazgeçtiler." },
+      { "tense": "future", "textEn": "I won't give up until it works.", "textTr": "Çalışana kadar vazgeçmeyeceğim." }
+    ]
+  }
+]
