@@ -6,6 +6,7 @@ import { supabase } from '../lib/supabase';
 import { mapUserSettings, mapWord, mapWordProgress } from '../lib/mappers';
 import { applyGrade, INTERVALS_DAYS } from '../lib/srs';
 import { pickWeightedBatch } from '../lib/batch';
+import { derivedPassword } from '../lib/auth';
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 const DEFAULT_WEEKLY_GOAL = 20;
@@ -18,15 +19,13 @@ interface State {
   words: Word[];
   progressByWordId: Record<string, WordProgress>;
   userSettings: UserSettings | null;
-  otpEmail: string | null;
   authLoading: boolean;
   authError: string | null;
 }
 
 interface Actions {
   init: () => Promise<void>;
-  sendOtp: (email: string) => Promise<void>;
-  verifyOtp: (code: string) => Promise<void>;
+  signInWithEmail: (email: string) => Promise<void>;
   signOut: () => Promise<void>;
   setStatus: (wordId: string, status: WordStatus) => Promise<void>;
   reviewWord: (wordId: string, grade: ReviewGrade) => Promise<void>;
@@ -142,7 +141,6 @@ export const useStore = create<Store>()((set, get) => ({
   words: [],
   progressByWordId: {},
   userSettings: null,
-  otpEmail: null,
   authLoading: false,
   authError: null,
 
@@ -163,38 +161,31 @@ export const useStore = create<Store>()((set, get) => ({
     }
   },
 
-  sendOtp: async (email) => {
+  signInWithEmail: async (email) => {
     set({ authLoading: true, authError: null });
-    const trimmed = email.trim();
-    const { error } = await supabase.auth.signInWithOtp({
-      email: trimmed,
-      options: { shouldCreateUser: true },
-    });
+    const trimmed = email.trim().toLowerCase();
+    const password = derivedPassword(trimmed);
+
+    let { data, error } = await supabase.auth.signInWithPassword({ email: trimmed, password });
     if (error) {
-      set({ authLoading: false, authError: error.message });
-      return;
-    }
-    set({ authLoading: false, otpEmail: trimmed });
-  },
-
-  verifyOtp: async (code) => {
-    const email = get().otpEmail;
-    if (!email) return;
-    set({ authLoading: true, authError: null });
-
-    const { data, error } = await supabase.auth.verifyOtp({
-      email,
-      token: code.trim(),
-      type: 'email',
-    });
-    if (error || !data.session) {
-      set({ authLoading: false, authError: error?.message ?? 'Kod doğrulanamadı' });
-      return;
+      const signUp = await supabase.auth.signUp({ email: trimmed, password });
+      if (signUp.error) {
+        set({ authLoading: false, authError: signUp.error.message });
+        return;
+      }
+      if (!signUp.data.session) {
+        set({
+          authLoading: false,
+          authError: 'Kayıt oluştu ama oturum açılamadı. Supabase\'de "Confirm email" ayarını kapat.',
+        });
+        return;
+      }
+      data = { user: signUp.data.user!, session: signUp.data.session } as typeof data;
     }
 
     try {
-      await bootReady(data.session.user.id, data.session.user.email ?? null, set);
-      set({ authLoading: false, otpEmail: null });
+      await bootReady(data.session!.user.id, data.session!.user.email ?? null, set);
+      set({ authLoading: false });
     } catch (err: any) {
       set({ authLoading: false, authError: err?.message ?? 'Kelimeler yüklenemedi' });
     }
@@ -209,8 +200,7 @@ export const useStore = create<Store>()((set, get) => ({
       words: [],
       progressByWordId: {},
       userSettings: null,
-      otpEmail: null,
-      authError: null,
+          authError: null,
     });
   },
 
