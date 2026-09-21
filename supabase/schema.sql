@@ -116,3 +116,26 @@ create policy "users can insert own settings" on user_settings
   for insert with check (auth.uid() = user_id);
 create policy "users can update own settings" on user_settings
   for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- ─────────────────────────────────────────────────────────────────────────
+-- Review history (streak / weekly chart on Home). See migrations/0002.
+-- ─────────────────────────────────────────────────────────────────────────
+
+create table review_events (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  word_id uuid not null references words(id) on delete cascade,
+  grade text not null check (grade in ('again', 'hard', 'good')),
+  reviewed_at timestamptz not null default now()
+);
+
+create index review_events_user_time_idx on review_events(user_id, reviewed_at desc);
+
+alter table review_events enable row level security;
+
+create policy "users can read own review events" on review_events
+  for select using (auth.uid() = user_id);
+create policy "users can insert own review events" on review_events
+  for insert with check (auth.uid() = user_id);
+create policy "users can delete own review events" on review_events
+  for delete using (auth.uid() = user_id);

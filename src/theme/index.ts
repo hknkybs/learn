@@ -52,3 +52,20 @@ export const statusLabels: Record<string, string> = {
   learning: 'Öğreniyorum',
   known: 'Biliyorum',
 };
+
+export const fonts = {
+  serif: 'IBMPlexSerif_700Bold',
+  sans: 'IBMPlexSans_400Regular',
+  sansMedium: 'IBMPlexSans_500Medium',
+  sansSemibold: 'IBMPlexSans_600SemiBold',
+  sansBold: 'IBMPlexSans_700Bold',
+  sansItalic: 'IBMPlexSans_400Regular_Italic',
+} as const;
+
+// Which theme tokens color each tense card (front accent + muted back face).
+export const tenseColorKeys = {
+  present_simple: { color: 'primary', muted: 'primaryMuted' },
+  present_continuous: { color: 'statusLearning', muted: 'statusLearningMuted' },
+  past_simple: { color: 'statusKnown', muted: 'statusKnownMuted' },
+  future: { color: 'textMuted', muted: 'statusNewMuted' },
+} as const;

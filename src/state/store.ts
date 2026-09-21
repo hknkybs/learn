@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { useShallow } from 'zustand/react/shallow';
 import { useMemo } from 'react';
-import { BootStatus, ReviewGrade, UserSettings, Word, WordProgress, WordStatus } from '../types';
+import { BootStatus, ReviewEvent, ReviewGrade, UserSettings, Word, WordProgress, WordStatus } from '../types';
 import { supabase } from '../lib/supabase';
 import { mapUserSettings, mapWord, mapWordProgress } from '../lib/mappers';
 import { applyGrade, INTERVALS_DAYS } from '../lib/srs';
@@ -19,6 +19,8 @@ interface State {
   words: Word[];
   progressByWordId: Record<string, WordProgress>;
   userSettings: UserSettings | null;
+  reviewEvents: ReviewEvent[];
+  reviewEventsAvailable: boolean;
   authLoading: boolean;
   authError: string | null;
 }
@@ -49,10 +51,12 @@ function defaultProgress(wordId: string): WordProgress {
 }
 
 async function loadCatalogAndProgress(userId: string) {
-  const [wordsRes, progressRes, settingsRes] = await Promise.all([
+  const since = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString();
+  const [wordsRes, progressRes, settingsRes, eventsRes] = await Promise.all([
     supabase.from('words').select('*, word_forms(*), example_sentences(*)').order('lemma'),
     supabase.from('word_progress').select('*').eq('user_id', userId),
     supabase.from('user_settings').select('*').eq('user_id', userId).maybeSingle(),
+    supabase.from('review_events').select('word_id, grade, reviewed_at').eq('user_id', userId).gte('reviewed_at', since),
   ]);
   if (wordsRes.error) throw wordsRes.error;
   if (progressRes.error) throw progressRes.error;
@@ -78,7 +82,15 @@ async function loadCatalogAndProgress(userId: string) {
     settings = mapUserSettings(created);
   }
 
-  return { words, progressByWordId, settings };
+  // The table may not exist yet (migration 0002); Home hides the history cards then.
+  const reviewEventsAvailable = !eventsRes.error;
+  const reviewEvents: ReviewEvent[] = (eventsRes.data ?? []).map((row: any) => ({
+    wordId: row.word_id,
+    grade: row.grade,
+    reviewedAt: new Date(row.reviewed_at).getTime(),
+  }));
+
+  return { words, progressByWordId, settings, reviewEvents, reviewEventsAvailable };
 }
 
 async function insertBatchProgress(userId: string, wordIds: string[]) {
@@ -114,7 +126,7 @@ async function updateBatchStartedAt(userId: string, timestamp: number): Promise<
 }
 
 async function bootReady(userId: string, email: string | null, set: (partial: Partial<State>) => void) {
-  let { words, progressByWordId, settings } = await loadCatalogAndProgress(userId);
+  let { words, progressByWordId, settings, reviewEvents, reviewEventsAvailable } = await loadCatalogAndProgress(userId);
 
   const dueForRefresh = settings.batchStartedAt === null || Date.now() - settings.batchStartedAt >= WEEK_MS;
   if (dueForRefresh) {
@@ -129,6 +141,8 @@ async function bootReady(userId: string, email: string | null, set: (partial: Pa
     words,
     progressByWordId,
     userSettings: settings,
+    reviewEvents,
+    reviewEventsAvailable,
     bootStatus: 'ready',
   });
 }
@@ -141,6 +155,8 @@ export const useStore = create<Store>()((set, get) => ({
   words: [],
   progressByWordId: {},
   userSettings: null,
+  reviewEvents: [],
+  reviewEventsAvailable: false,
   authLoading: false,
   authError: null,
 
@@ -251,7 +267,14 @@ export const useStore = create<Store>()((set, get) => ({
       lastReviewedAt: now,
       nextReviewAt: result.nextReviewAt,
     };
-    set({ progressByWordId: { ...get().progressByWordId, [wordId]: optimistic } });
+    set({
+      progressByWordId: { ...get().progressByWordId, [wordId]: optimistic },
+      reviewEvents: [...get().reviewEvents, { wordId, grade, reviewedAt: now }],
+    });
+    supabase
+      .from('review_events')
+      .insert({ user_id: userId, word_id: wordId, grade, reviewed_at: new Date(now).toISOString() })
+      .then(() => {});
 
     const { data, error } = await supabase
       .from('word_progress')
@@ -320,7 +343,11 @@ export const useStore = create<Store>()((set, get) => ({
       .single();
     if (error) throw error;
 
-    set({ progressByWordId: {}, userSettings: mapUserSettings(data) });
+    if (get().reviewEventsAvailable) {
+      await supabase.from('review_events').delete().eq('user_id', userId);
+    }
+
+    set({ progressByWordId: {}, reviewEvents: [], userSettings: mapUserSettings(data) });
   },
 }));
 
@@ -345,4 +372,40 @@ export function useDueWords(): Word[] {
         });
     })
   );
+}
+
+function dayKey(ts: number): string {
+  const d = new Date(ts);
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+}
+
+/** Consecutive days with at least one review, ending today (or yesterday if nothing yet today). */
+export function computeStreak(events: ReviewEvent[]): number {
+  const days = new Set(events.map((e) => dayKey(e.reviewedAt)));
+  const cursor = new Date();
+  if (!days.has(dayKey(cursor.getTime()))) cursor.setDate(cursor.getDate() - 1);
+  let streak = 0;
+  while (days.has(dayKey(cursor.getTime()))) {
+    streak += 1;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  return streak;
+}
+
+/** Review counts for Monday..Sunday of the current week. */
+export function computeWeeklyCounts(events: ReviewEvent[]): number[] {
+  const now = new Date();
+  const mondayOffset = (now.getDay() + 6) % 7;
+  const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - mondayOffset).getTime();
+  const counts = [0, 0, 0, 0, 0, 0, 0];
+  for (const e of events) {
+    const idx = Math.floor((e.reviewedAt - monday) / (24 * 60 * 60 * 1000));
+    if (idx >= 0 && idx < 7) counts[idx] += 1;
+  }
+  return counts;
+}
+
+export function countReviewsToday(events: ReviewEvent[]): number {
+  const today = dayKey(Date.now());
+  return events.filter((e) => dayKey(e.reviewedAt) === today).length;
 }

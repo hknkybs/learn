@@ -1,6 +1,15 @@
 import React, { useEffect } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { useFonts } from 'expo-font';
+import {
+  IBMPlexSans_400Regular,
+  IBMPlexSans_400Regular_Italic,
+  IBMPlexSans_500Medium,
+  IBMPlexSans_600SemiBold,
+  IBMPlexSans_700Bold,
+} from '@expo-google-fonts/ibm-plex-sans';
+import { IBMPlexSerif_700Bold } from '@expo-google-fonts/ibm-plex-serif';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
 import { RootNavigator } from './src/navigation/RootNavigator';
@@ -12,6 +21,14 @@ function AppShell() {
   const { colors, isDark } = useTheme();
   const bootStatus = useStore((s) => s.bootStatus);
   const bootError = useStore((s) => s.bootError);
+  const [fontsLoaded] = useFonts({
+    IBMPlexSans_400Regular,
+    IBMPlexSans_400Regular_Italic,
+    IBMPlexSans_500Medium,
+    IBMPlexSans_600SemiBold,
+    IBMPlexSans_700Bold,
+    IBMPlexSerif_700Bold,
+  });
 
   useEffect(() => {
     useStore.getState().init();
@@ -28,7 +45,7 @@ function AppShell() {
     );
   }
 
-  if (bootStatus === 'loading') {
+  if (bootStatus === 'loading' || !fontsLoaded) {
     return (
       <View style={[styles.center, { backgroundColor: colors.background }]}>
         <ActivityIndicator color={colors.primary} size="large" />

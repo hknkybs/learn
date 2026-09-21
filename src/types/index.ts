@@ -60,3 +60,9 @@ export interface WordProgress {
 }
 
 export type ReviewGrade = 'again' | 'hard' | 'good';
+
+export interface ReviewEvent {
+  wordId: string;
+  grade: ReviewGrade;
+  reviewedAt: number;
+}
