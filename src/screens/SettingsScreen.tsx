@@ -67,12 +67,12 @@ export function SettingsScreen() {
     setCreating(true);
     setResultMessage(null);
     await setWeeklyGoal(goal);
-    const { added, requested } = await startNewBatch(goal);
+    const { added, dailyRate, weeklyGoal } = await startNewBatch(goal);
     setCreating(false);
     setResultMessage(
-      added < requested
-        ? `${added} yeni kelime eklendi (havuzda daha fazla yeni kelime kalmadı).`
-        : `${added} yeni kelime öğrenme listene eklendi.`
+      added < dailyRate
+        ? `${added} kelime eklendi (havuzda daha fazla yeni kelime kalmadı).`
+        : `Bugün için ${added} kelime eklendi. 7 güne yayılarak toplam ${weeklyGoal} kelimeye ulaşacak (günde ~${dailyRate}).`
     );
   }
 
@@ -132,7 +132,8 @@ export function SettingsScreen() {
         {resultMessage ? <Text style={[styles.result, { color: colors.textMuted }]}>{resultMessage}</Text> : null}
         {nextAutoRefresh ? (
           <Text style={[styles.hint, { color: colors.textMuted }]}>
-            Otomatik yenileme: {nextAutoRefresh} (bilinen kelimeler hariç, yeni bir liste otomatik eklenir)
+            Yeni kelimeler her gün 7'de birer dilim halinde otomatik ekleniyor. Bu haftalık dönem {nextAutoRefresh} tarihinde
+            biter, ardından yeni bir dönem başlar.
           </Text>
         ) : null}
       </View>

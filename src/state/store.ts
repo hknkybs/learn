@@ -14,7 +14,8 @@ import {
   scheduleDailyReminder,
 } from '../lib/notifications';
 
-const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+const DAY_MS = 24 * 60 * 60 * 1000;
+const WEEK_MS = 7 * DAY_MS;
 const DEFAULT_WEEKLY_GOAL = 20;
 
 interface State {
@@ -39,7 +40,9 @@ interface Actions {
   reviewWord: (wordId: string, grade: ReviewGrade) => Promise<void>;
   setWeeklyGoal: (goal: number) => Promise<void>;
   setNotificationSettings: (patch: { enabled?: boolean; startMinute?: number; endMinute?: number }) => Promise<void>;
-  startNewBatch: (goal?: number) => Promise<{ added: number; requested: number }>;
+  startNewBatch: (
+    goal?: number
+  ) => Promise<{ added: number; requested: number; weeklyGoal: number; dailyRate: number }>;
   resetProgress: () => Promise<void>;
 }
 
@@ -155,15 +158,62 @@ async function updateBatchStartedAt(userId: string, timestamp: number): Promise<
   return mapUserSettings(data);
 }
 
+function dailyRate(weeklyGoal: number): number {
+  return Math.max(1, Math.ceil(weeklyGoal / 7));
+}
+
+/** How many words this user already has a progress row for, created since `since`. */
+async function countIntroducedSince(userId: string, since: number): Promise<number> {
+  const { count, error } = await supabase
+    .from('word_progress')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .gte('created_at', new Date(since).toISOString());
+  if (error) throw error;
+  return count ?? 0;
+}
+
+/**
+ * Spreads the weekly goal across 7 days instead of dumping it all on day one —
+ * otherwise every word starts in lockstep and keeps coming due together.
+ * A cycle lasts 7 days; each day unlocks another 1/7th of the goal, capped at
+ * the total. Starting a new cycle (7 days elapsed, or forced by startNewBatch)
+ * resets the count and unlocks day one's slice immediately.
+ */
+async function runDailyDrip(
+  userId: string,
+  words: Word[],
+  progressByWordId: Record<string, WordProgress>,
+  settings: UserSettings,
+  forceNewCycle = false
+) {
+  let batchStartedAt = settings.batchStartedAt;
+  let nextSettings = settings;
+
+  if (forceNewCycle || batchStartedAt === null || Date.now() - batchStartedAt >= WEEK_MS) {
+    batchStartedAt = Date.now();
+    nextSettings = await updateBatchStartedAt(userId, batchStartedAt);
+  }
+
+  const daysIntoCycle = Math.min(6, Math.floor((Date.now() - batchStartedAt) / DAY_MS));
+  const rate = dailyRate(nextSettings.weeklyGoal);
+  const target = Math.min(nextSettings.weeklyGoal, rate * (daysIntoCycle + 1));
+  const introduced = await countIntroducedSince(userId, batchStartedAt);
+  const toAdd = target - introduced;
+
+  if (toAdd <= 0) {
+    return { progressByWordId, settings: nextSettings, added: 0, dailyRate: rate };
+  }
+  const result = await generateBatch(userId, words, progressByWordId, toAdd);
+  return { progressByWordId: result.progressByWordId, settings: nextSettings, added: result.added, dailyRate: rate };
+}
+
 async function bootReady(userId: string, email: string | null, set: (partial: Partial<State>) => void) {
   let { words, progressByWordId, settings, reviewEvents, reviewEventsAvailable } = await loadCatalogAndProgress(userId);
 
-  const dueForRefresh = settings.batchStartedAt === null || Date.now() - settings.batchStartedAt >= WEEK_MS;
-  if (dueForRefresh) {
-    const result = await generateBatch(userId, words, progressByWordId, settings.weeklyGoal);
-    progressByWordId = result.progressByWordId;
-    settings = await updateBatchStartedAt(userId, Date.now());
-  }
+  const drip = await runDailyDrip(userId, words, progressByWordId, settings);
+  progressByWordId = drip.progressByWordId;
+  settings = drip.settings;
 
   set({
     userId,
@@ -403,14 +453,17 @@ export const useStore = create<Store>()((set, get) => ({
   startNewBatch: async (goal) => {
     const userId = get().userId;
     const state = get();
-    if (!userId) return { added: 0, requested: 0 };
+    if (!userId || !state.userSettings) return { added: 0, requested: 0, weeklyGoal: 0, dailyRate: 0 };
 
-    const requested = goal ?? state.userSettings?.weeklyGoal ?? DEFAULT_WEEKLY_GOAL;
-    const result = await generateBatch(userId, state.words, state.progressByWordId, requested);
-    const settings = await updateBatchStartedAt(userId, Date.now());
+    const weeklyGoal = goal ?? state.userSettings.weeklyGoal;
+    const settingsWithGoal = { ...state.userSettings, weeklyGoal };
 
-    set({ progressByWordId: result.progressByWordId, userSettings: settings });
-    return { added: result.added, requested };
+    // Starting the button always begins a fresh 7-day cycle, so it consistently
+    // hands back just today's slice — never the old "dump everything at once" batch.
+    const drip = await runDailyDrip(userId, state.words, state.progressByWordId, settingsWithGoal, true);
+
+    set({ progressByWordId: drip.progressByWordId, userSettings: drip.settings });
+    return { added: drip.added, requested: drip.dailyRate, weeklyGoal, dailyRate: drip.dailyRate };
   },
 
   resetProgress: async () => {
