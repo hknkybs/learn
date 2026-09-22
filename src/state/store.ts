@@ -50,21 +50,45 @@ function defaultProgress(wordId: string): WordProgress {
   };
 }
 
+const PAGE_SIZE = 1000;
+
+/** PostgREST caps a single response at ~1000 rows; page through with .range() to get everything. */
+async function fetchAllRows<T>(page: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: any }>) {
+  const all: T[] = [];
+  for (let from = 0; ; from += PAGE_SIZE) {
+    const { data, error } = await page(from, from + PAGE_SIZE - 1);
+    if (error) throw error;
+    all.push(...(data ?? []));
+    if (!data || data.length < PAGE_SIZE) break;
+  }
+  return all;
+}
+
 async function loadCatalogAndProgress(userId: string) {
   const since = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString();
-  const [wordsRes, progressRes, settingsRes, eventsRes] = await Promise.all([
-    supabase.from('words').select('*, word_forms(*), example_sentences(*)').order('lemma'),
-    supabase.from('word_progress').select('*').eq('user_id', userId),
+  const [wordsRows, progressRows, settingsRes, eventsOutcome] = await Promise.all([
+    fetchAllRows((from, to) =>
+      supabase.from('words').select('*, word_forms(*), example_sentences(*)').order('lemma').range(from, to)
+    ),
+    fetchAllRows((from, to) => supabase.from('word_progress').select('*').eq('user_id', userId).range(from, to)),
     supabase.from('user_settings').select('*').eq('user_id', userId).maybeSingle(),
-    supabase.from('review_events').select('word_id, grade, reviewed_at').eq('user_id', userId).gte('reviewed_at', since),
+    // The table may not exist yet (migration 0002 not applied) — degrade instead of failing boot.
+    fetchAllRows((from, to) =>
+      supabase
+        .from('review_events')
+        .select('word_id, grade, reviewed_at')
+        .eq('user_id', userId)
+        .gte('reviewed_at', since)
+        .range(from, to)
+    )
+      .then((data) => ({ data, available: true }))
+      .catch(() => ({ data: [] as any[], available: false })),
   ]);
-  if (wordsRes.error) throw wordsRes.error;
-  if (progressRes.error) throw progressRes.error;
   if (settingsRes.error) throw settingsRes.error;
 
-  const words = (wordsRes.data ?? []).map(mapWord);
+  const words = wordsRows.map(mapWord);
   const progressByWordId: Record<string, WordProgress> = {};
-  for (const row of progressRes.data ?? []) {
+  for (const row of progressRows) {
     const progress = mapWordProgress(row);
     progressByWordId[progress.wordId] = progress;
   }
@@ -82,9 +106,8 @@ async function loadCatalogAndProgress(userId: string) {
     settings = mapUserSettings(created);
   }
 
-  // The table may not exist yet (migration 0002); Home hides the history cards then.
-  const reviewEventsAvailable = !eventsRes.error;
-  const reviewEvents: ReviewEvent[] = (eventsRes.data ?? []).map((row: any) => ({
+  const reviewEventsAvailable = eventsOutcome.available;
+  const reviewEvents: ReviewEvent[] = eventsOutcome.data.map((row: any) => ({
     wordId: row.word_id,
     grade: row.grade,
     reviewedAt: new Date(row.reviewed_at).getTime(),
