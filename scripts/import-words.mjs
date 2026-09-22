@@ -43,7 +43,7 @@ try {
   process.exit(1);
 }
 
-const POS = ['verb', 'noun', 'adjective', 'adverb', 'phrase', 'preposition', 'other'];
+const POS = ['verb', 'noun', 'adjective', 'adverb', 'phrase', 'preposition', 'conjunction', 'pronoun', 'number', 'other'];
 const FORM_TYPES = [
   'base', 'third_person_singular', 'past_simple', 'past_participle', 'gerund',
   'singular', 'plural', 'comparative', 'superlative',
@@ -54,9 +54,10 @@ const CEFR = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 function validate(list) {
   const errors = [];
   const warnings = [];
-  if (!Array.isArray(list)) return { errors: ['Dosyanın kökü bir dizi ([...]) olmalı.'], warnings };
+  const skipIndexes = new Set();
+  if (!Array.isArray(list)) return { errors: ['Dosyanın kökü bir dizi ([...]) olmalı.'], warnings, skipIndexes };
 
-  const seen = new Set();
+  const seen = new Map();
   list.forEach((w, i) => {
     const id = `#${i + 1} "${w?.lemma ?? '?'}"`;
     const err = (msg) => errors.push(`${id}: ${msg}`);
@@ -64,8 +65,12 @@ function validate(list) {
 
     if (!w?.lemma || typeof w.lemma !== 'string') return err('lemma eksik');
     const key = w.lemma.trim().toLowerCase();
-    if (seen.has(key)) err('lemma dosyada birden fazla kez geçiyor');
-    seen.add(key);
+    if (seen.has(key)) {
+      warn(`lemma "${w.lemma}" dosyada birden fazla kez var (ilk geçen "${list[seen.get(key)].partOfSpeech}" kaydedilecek, bu atlanıyor — aynı lemma için tek satır destekleniyor)`);
+      skipIndexes.add(i);
+      return;
+    }
+    seen.set(key, i);
 
     if (!POS.includes(w.partOfSpeech)) err(`partOfSpeech geçersiz (${POS.join(' | ')})`);
     if (!w.translationTr) err('translationTr eksik');
@@ -90,16 +95,17 @@ function validate(list) {
       if (missing.length) warn(`eksik zaman örnekleri: ${missing.join(', ')}`);
     }
   });
-  return { errors, warnings };
+  return { errors, warnings, skipIndexes };
 }
 
-const { errors, warnings } = validate(words);
+const { errors, warnings, skipIndexes } = validate(words);
 warnings.forEach((m) => console.warn(`⚠ ${m}`));
 if (errors.length) {
   errors.forEach((m) => console.error(`✗ ${m}`));
   console.error(`\n${errors.length} hata bulundu, yükleme yapılmadı.`);
   process.exit(1);
 }
+words = words.filter((_, i) => !skipIndexes.has(i));
 console.log(`✓ ${words.length} kelime geçerli${warnings.length ? ` (${warnings.length} uyarı)` : ''}.`);
 if (checkOnly) process.exit(0);
 
@@ -115,56 +121,67 @@ if (!supabaseUrl || !serviceRoleKey) {
 
 const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-
-let count = 0;
-for (const word of words) {
-  const { data: wordRow, error: wordError } = await supabase
-    .from('words')
-    .upsert(
-      {
-        lemma: word.lemma,
-        part_of_speech: word.partOfSpeech,
-        cefr: word.cefr ?? null,
-        ipa: word.ipa ?? null,
-        translation_tr: word.translationTr,
-        nuance_tr: word.nuanceTr ?? null,
-        frequency_score: word.frequencyScore ?? 3,
-      },
-      { onConflict: 'lemma' }
-    )
-    .select()
-    .single();
-
-  if (wordError) {
-    console.error(`"${word.lemma}" kaydedilemedi:`, wordError.message);
-    continue;
-  }
-
-  const wordId = wordRow.id;
-
-  await supabase.from('word_forms').delete().eq('word_id', wordId);
-  if (word.forms?.length) {
-    const { error } = await supabase
-      .from('word_forms')
-      .insert(word.forms.map((f) => ({ word_id: wordId, form_type: f.formType, text: f.text })));
-    if (error) console.error(`"${word.lemma}" formları kaydedilemedi:`, error.message);
-  }
-
-  await supabase.from('example_sentences').delete().eq('word_id', wordId);
-  if (word.examples?.length) {
-    const { error } = await supabase.from('example_sentences').insert(
-      word.examples.map((e) => ({
-        word_id: wordId,
-        tense: e.tense,
-        text_en: e.textEn,
-        text_tr: e.textTr,
-      }))
-    );
-    if (error) console.error(`"${word.lemma}" örnekleri kaydedilemedi:`, error.message);
-  }
-
-  count += 1;
-  console.log(`✓ ${word.lemma}`);
+function chunk(arr, size) {
+  const out = [];
+  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+  return out;
 }
 
-console.log(`\n${count}/${words.length} kelime içe aktarıldı.`);
+const WORD_CHUNK = 500;
+const ROW_CHUNK = 1000;
+
+console.log(`${words.length} kelime yükleniyor...`);
+
+const wordIdByLemma = new Map();
+for (const [i, batch] of chunk(words, WORD_CHUNK).entries()) {
+  const { data, error } = await supabase
+    .from('words')
+    .upsert(
+      batch.map((w) => ({
+        lemma: w.lemma,
+        part_of_speech: w.partOfSpeech,
+        cefr: w.cefr ?? null,
+        ipa: w.ipa ?? null,
+        translation_tr: w.translationTr,
+        nuance_tr: w.nuanceTr ?? null,
+        frequency_score: w.frequencyScore ?? 3,
+      })),
+      { onConflict: 'lemma' }
+    )
+    .select('id, lemma');
+  if (error) {
+    console.error(`Kelime grubu ${i + 1} kaydedilemedi:`, error.message);
+    process.exit(1);
+  }
+  for (const row of data) wordIdByLemma.set(row.lemma, row.id);
+  console.log(`✓ kelimeler ${Math.min((i + 1) * WORD_CHUNK, words.length)}/${words.length}`);
+}
+
+const wordIds = [...wordIdByLemma.values()];
+for (const batch of chunk(wordIds, WORD_CHUNK)) {
+  await supabase.from('word_forms').delete().in('word_id', batch);
+  await supabase.from('example_sentences').delete().in('word_id', batch);
+}
+
+const formRows = [];
+const exampleRows = [];
+for (const w of words) {
+  const wordId = wordIdByLemma.get(w.lemma);
+  if (!wordId) continue;
+  for (const f of w.forms ?? []) formRows.push({ word_id: wordId, form_type: f.formType, text: f.text });
+  for (const e of w.examples ?? []) exampleRows.push({ word_id: wordId, tense: e.tense, text_en: e.textEn, text_tr: e.textTr });
+}
+
+for (const [i, batch] of chunk(formRows, ROW_CHUNK).entries()) {
+  const { error } = await supabase.from('word_forms').insert(batch);
+  if (error) console.error(`Hâl grubu ${i + 1} kaydedilemedi:`, error.message);
+}
+console.log(`✓ ${formRows.length} hâl (form) yüklendi`);
+
+for (const [i, batch] of chunk(exampleRows, ROW_CHUNK).entries()) {
+  const { error } = await supabase.from('example_sentences').insert(batch);
+  if (error) console.error(`Örnek cümle grubu ${i + 1} kaydedilemedi:`, error.message);
+}
+console.log(`✓ ${exampleRows.length} örnek cümle yüklendi`);
+
+console.log(`\n${wordIdByLemma.size}/${words.length} kelime içe aktarıldı.`);

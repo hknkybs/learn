@@ -1,4 +1,4 @@
-export type PartOfSpeech = 'verb' | 'noun' | 'adjective' | 'adverb' | 'phrase' | 'preposition' | 'other';
+export type PartOfSpeech = 'verb' | 'noun' | 'adjective' | 'adverb' | 'phrase' | 'preposition' | 'conjunction' | 'pronoun' | 'number' | 'other';
 
 export type WordFormType =
   | 'base'
