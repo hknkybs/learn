@@ -188,10 +188,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
+    flexGrow: 1,
     paddingHorizontal: 20,
     paddingTop: spacing.lg,
     paddingBottom: spacing.xl,
     gap: 14,
+    justifyContent: 'space-between',
   },
   greetRow: {
     flexDirection: 'row',
