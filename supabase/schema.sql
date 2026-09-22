@@ -11,7 +11,7 @@ create extension if not exists pgcrypto;
 create table words (
   id uuid primary key default gen_random_uuid(),
   lemma text not null unique,
-  part_of_speech text not null check (part_of_speech in ('verb', 'noun', 'adjective', 'adverb', 'phrase', 'other')),
+  part_of_speech text not null check (part_of_speech in ('verb', 'noun', 'adjective', 'adverb', 'phrase', 'preposition', 'other')),
   cefr text,
   ipa text,
   translation_tr text not null,

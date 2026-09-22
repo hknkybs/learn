@@ -32,6 +32,7 @@ export const partOfSpeechLabels: Record<string, string> = {
   adjective: 'sıfat',
   adverb: 'zarf',
   phrase: 'kalıp',
+  preposition: 'edat',
   other: 'diğer',
 };
 

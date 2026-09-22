@@ -9,7 +9,7 @@ import {
   useStore,
 } from '../state/store';
 import { useTheme } from '../theme/ThemeContext';
-import { fonts, radius, spacing } from '../theme';
+import { fonts, partOfSpeechLabels, radius, spacing } from '../theme';
 import { TabScreenProps } from '../navigation/types';
 
 type Props = TabScreenProps<'Home'>;
@@ -154,7 +154,7 @@ export function HomeScreen({ navigation }: Props) {
             <View style={styles.wotdRow}>
               <Text style={[styles.wotdWord, { color: colors.text }]}>{wordOfTheDay.lemma}</Text>
               <Text style={[styles.wotdPos, { color: colors.textMuted }]}>
-                {{ verb: 'fiil', noun: 'isim', adjective: 'sıfat', adverb: 'zarf', phrase: 'kalıp', other: 'diğer' }[wordOfTheDay.partOfSpeech]}
+                {partOfSpeechLabels[wordOfTheDay.partOfSpeech]}
               </Text>
             </View>
             <Text style={[styles.wotdTr, { color: colors.text }]}>{wordOfTheDay.translationTr}</Text>

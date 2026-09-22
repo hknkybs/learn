@@ -43,7 +43,7 @@ try {
   process.exit(1);
 }
 
-const POS = ['verb', 'noun', 'adjective', 'adverb', 'phrase', 'other'];
+const POS = ['verb', 'noun', 'adjective', 'adverb', 'phrase', 'preposition', 'other'];
 const FORM_TYPES = [
   'base', 'third_person_singular', 'past_simple', 'past_participle', 'gerund',
   'singular', 'plural', 'comparative', 'superlative',
