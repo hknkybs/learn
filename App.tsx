@@ -10,6 +10,7 @@ import {
   IBMPlexSans_700Bold,
 } from '@expo-google-fonts/ibm-plex-sans';
 import { IBMPlexSerif_700Bold } from '@expo-google-fonts/ibm-plex-serif';
+import { androidChannelSetup } from './src/lib/notifications';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
 import { RootNavigator } from './src/navigation/RootNavigator';
@@ -31,6 +32,7 @@ function AppShell() {
   });
 
   useEffect(() => {
+    androidChannelSetup();
     useStore.getState().init();
   }, []);
 

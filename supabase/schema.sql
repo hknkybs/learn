@@ -76,6 +76,10 @@ create table user_settings (
   user_id uuid primary key references auth.users(id) on delete cascade,
   weekly_goal int not null default 20,
   batch_started_at timestamptz,
+  -- Local reminder notification: on/off + allowed time-of-day window (minutes since midnight).
+  notifications_enabled boolean not null default false,
+  notify_start_minute int not null default 540,  -- 09:00
+  notify_end_minute int not null default 1260,  -- 21:00
   updated_at timestamptz not null default now()
 );
 

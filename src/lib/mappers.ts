@@ -39,5 +39,8 @@ export function mapUserSettings(row: any): UserSettings {
   return {
     weeklyGoal: row.weekly_goal,
     batchStartedAt: row.batch_started_at ? new Date(row.batch_started_at).getTime() : null,
+    notificationsEnabled: row.notifications_enabled ?? false,
+    notifyStartMinute: row.notify_start_minute ?? 540,
+    notifyEndMinute: row.notify_end_minute ?? 1260,
   };
 }

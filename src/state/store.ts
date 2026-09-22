@@ -7,6 +7,12 @@ import { mapUserSettings, mapWord, mapWordProgress } from '../lib/mappers';
 import { applyGrade, INTERVALS_DAYS } from '../lib/srs';
 import { pickWeightedBatch } from '../lib/batch';
 import { derivedPassword } from '../lib/auth';
+import {
+  cancelDailyReminder,
+  notificationsSupported,
+  requestNotificationPermission,
+  scheduleDailyReminder,
+} from '../lib/notifications';
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 const DEFAULT_WEEKLY_GOAL = 20;
@@ -32,6 +38,7 @@ interface Actions {
   setStatus: (wordId: string, status: WordStatus) => Promise<void>;
   reviewWord: (wordId: string, grade: ReviewGrade) => Promise<void>;
   setWeeklyGoal: (goal: number) => Promise<void>;
+  setNotificationSettings: (patch: { enabled?: boolean; startMinute?: number; endMinute?: number }) => Promise<void>;
   startNewBatch: (goal?: number) => Promise<{ added: number; requested: number }>;
   resetProgress: () => Promise<void>;
 }
@@ -168,6 +175,12 @@ async function bootReady(userId: string, email: string | null, set: (partial: Pa
     reviewEventsAvailable,
     bootStatus: 'ready',
   });
+
+  // Local notifications are OS-scheduled and normally survive restarts, but
+  // re-arm on boot in case this is a fresh install or the OS cleared them.
+  if (settings.notificationsEnabled) {
+    scheduleDailyReminder(settings.notifyStartMinute, settings.notifyEndMinute);
+  }
 }
 
 export const useStore = create<Store>()((set, get) => ({
@@ -336,6 +349,55 @@ export const useStore = create<Store>()((set, get) => ({
       .select()
       .single();
     if (!error && data) set({ userSettings: mapUserSettings(data) });
+  },
+
+  setNotificationSettings: async (patch) => {
+    const userId = get().userId;
+    const current = get().userSettings;
+    if (!userId || !current) return;
+
+    const next = {
+      notificationsEnabled: patch.enabled ?? current.notificationsEnabled,
+      notifyStartMinute: patch.startMinute ?? current.notifyStartMinute,
+      notifyEndMinute: patch.endMinute ?? current.notifyEndMinute,
+    };
+
+    if (next.notificationsEnabled && patch.enabled) {
+      if (!notificationsSupported) {
+        set({ authError: 'Bildirimler yalnızca mobil uygulamada çalışır; tercihin kaydedildi, telefonda giriş yapınca izin isteyecek.' });
+      } else {
+        const granted = await requestNotificationPermission();
+        if (!granted) {
+          set({ authError: 'Bildirim izni verilmedi. Telefon ayarlarından izin vermen gerekiyor.' });
+          next.notificationsEnabled = false;
+        }
+      }
+    }
+
+    set({ userSettings: { ...current, ...next } });
+
+    const { data, error } = await supabase
+      .from('user_settings')
+      .update({
+        notifications_enabled: next.notificationsEnabled,
+        notify_start_minute: next.notifyStartMinute,
+        notify_end_minute: next.notifyEndMinute,
+      })
+      .eq('user_id', userId)
+      .select()
+      .single();
+    if (error) {
+      // Most likely migration 0005 hasn't been run — revert the optimistic UI change.
+      set({ userSettings: current, authError: `Kaydedilemedi: ${error.message}` });
+      return;
+    }
+    if (data) set({ userSettings: mapUserSettings(data) });
+
+    if (next.notificationsEnabled) {
+      await scheduleDailyReminder(next.notifyStartMinute, next.notifyEndMinute);
+    } else {
+      await cancelDailyReminder();
+    }
   },
 
   startNewBatch: async (goal) => {

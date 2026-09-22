@@ -47,6 +47,9 @@ export interface Word {
 export interface UserSettings {
   weeklyGoal: number;
   batchStartedAt: number | null;
+  notificationsEnabled: boolean;
+  notifyStartMinute: number;
+  notifyEndMinute: number;
 }
 
 export interface WordProgress {

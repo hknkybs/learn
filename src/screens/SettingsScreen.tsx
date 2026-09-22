@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Platform, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '../state/store';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme';
+import { formatMinuteOfDay, notificationsSupported, parseMinuteOfDay } from '../lib/notifications';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -16,16 +17,45 @@ export function SettingsScreen() {
   const setWeeklyGoal = useStore((s) => s.setWeeklyGoal);
   const startNewBatch = useStore((s) => s.startNewBatch);
   const resetProgress = useStore((s) => s.resetProgress);
+  const setNotificationSettings = useStore((s) => s.setNotificationSettings);
+  const authError = useStore((s) => s.authError);
   const signOut = useStore((s) => s.signOut);
 
   const [goalInput, setGoalInput] = useState(String(userSettings?.weeklyGoal ?? 20));
   const [creating, setCreating] = useState(false);
   const [resultMessage, setResultMessage] = useState<string | null>(null);
   const [resetting, setResetting] = useState(false);
+  const [notifToggling, setNotifToggling] = useState(false);
+  const [startInput, setStartInput] = useState(formatMinuteOfDay(userSettings?.notifyStartMinute ?? 540));
+  const [endInput, setEndInput] = useState(formatMinuteOfDay(userSettings?.notifyEndMinute ?? 1260));
+  const [windowError, setWindowError] = useState<string | null>(null);
 
   useEffect(() => {
     if (userSettings) setGoalInput(String(userSettings.weeklyGoal));
   }, [userSettings?.weeklyGoal]);
+
+  useEffect(() => {
+    if (!userSettings) return;
+    setStartInput(formatMinuteOfDay(userSettings.notifyStartMinute));
+    setEndInput(formatMinuteOfDay(userSettings.notifyEndMinute));
+  }, [userSettings?.notifyStartMinute, userSettings?.notifyEndMinute]);
+
+  async function handleToggleNotifications(enabled: boolean) {
+    setNotifToggling(true);
+    await setNotificationSettings({ enabled });
+    setNotifToggling(false);
+  }
+
+  function handleSaveWindow() {
+    const start = parseMinuteOfDay(startInput);
+    const end = parseMinuteOfDay(endInput);
+    if (start === null || end === null) {
+      setWindowError('Saatleri SS:DD biçiminde gir, ör. 09:00');
+      return;
+    }
+    setWindowError(null);
+    setNotificationSettings({ startMinute: start, endMinute: end });
+  }
 
   const untouchedCount = words.filter((w) => !progressByWordId[w.id]).length;
   const nextAutoRefresh = userSettings?.batchStartedAt
@@ -71,6 +101,7 @@ export function SettingsScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
       <Text style={[styles.title, { color: colors.text }]}>Ayarlar</Text>
 
       <View style={[styles.card, { backgroundColor: colors.surface, ...shadow.card }]}>
@@ -106,6 +137,59 @@ export function SettingsScreen() {
         ) : null}
       </View>
 
+      <View style={[styles.card, { backgroundColor: colors.surface, ...shadow.card }]}>
+        <View style={styles.notifRow}>
+          <View style={styles.notifRowText}>
+            <Text style={[styles.label, { color: colors.textMuted }]}>Bildirimler</Text>
+            <Text style={[styles.value, { color: colors.text }]}>Kelime hatırlatması</Text>
+          </View>
+          <Switch
+            value={!!userSettings?.notificationsEnabled}
+            onValueChange={handleToggleNotifications}
+            disabled={notifToggling || !userSettings}
+            trackColor={{ true: colors.primary, false: colors.border }}
+          />
+        </View>
+
+        {!notificationsSupported ? (
+          <Text style={[styles.hint, { color: colors.textMuted }]}>
+            Bildirimler yalnızca mobil uygulamada (iOS/Android) çalışır. Tercihini burada kaydedebilirsin, telefonda
+            aynı hesapla girdiğinde devreye girer.
+          </Text>
+        ) : null}
+
+        {userSettings?.notificationsEnabled ? (
+          <View style={styles.windowBlock}>
+            <Text style={[styles.hint, { color: colors.textMuted, marginTop: 0 }]}>
+              Sadece bu saatler arasında bildirim al:
+            </Text>
+            <View style={styles.windowRow}>
+              <TextInput
+                style={[styles.timeInput, { borderColor: colors.border, color: colors.text }]}
+                value={startInput}
+                onChangeText={setStartInput}
+                placeholder="09:00"
+                placeholderTextColor={colors.textMuted}
+              />
+              <Text style={[styles.value, { color: colors.textMuted }]}>—</Text>
+              <TextInput
+                style={[styles.timeInput, { borderColor: colors.border, color: colors.text }]}
+                value={endInput}
+                onChangeText={setEndInput}
+                placeholder="21:00"
+                placeholderTextColor={colors.textMuted}
+              />
+              <TouchableOpacity style={[styles.smallButton, { backgroundColor: colors.primary }]} onPress={handleSaveWindow}>
+                <Text style={styles.buttonText}>Kaydet</Text>
+              </TouchableOpacity>
+            </View>
+            {windowError ? <Text style={[styles.result, { color: colors.danger }]}>{windowError}</Text> : null}
+          </View>
+        ) : null}
+
+        {authError ? <Text style={[styles.result, { color: colors.danger }]}>{authError}</Text> : null}
+      </View>
+
       <TouchableOpacity
         style={[styles.signOutButton, { backgroundColor: colors.dangerMuted, opacity: resetting ? 0.6 : 1 }]}
         disabled={resetting}
@@ -117,6 +201,7 @@ export function SettingsScreen() {
       <TouchableOpacity style={[styles.signOutButton, { backgroundColor: colors.dangerMuted }]} onPress={signOut}>
         <Text style={[styles.signOutText, { color: colors.danger }]}>Çıkış Yap</Text>
       </TouchableOpacity>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -124,8 +209,11 @@ export function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  scrollContent: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
+    paddingBottom: spacing.xl,
     gap: spacing.md,
   },
   title: {
@@ -182,5 +270,37 @@ const styles = StyleSheet.create({
   },
   signOutText: {
     fontWeight: '700',
+  },
+  notifRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  notifRowText: {
+    flex: 1,
+  },
+  windowBlock: {
+    marginTop: spacing.md,
+  },
+  windowRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginTop: spacing.xs,
+  },
+  timeInput: {
+    borderWidth: 1,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 8,
+    fontSize: 15,
+    width: 68,
+    textAlign: 'center',
+  },
+  smallButton: {
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 8,
+    marginLeft: 'auto',
   },
 });
