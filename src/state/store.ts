@@ -1,7 +1,17 @@
 import { create } from 'zustand';
 import { useShallow } from 'zustand/react/shallow';
 import { useMemo } from 'react';
-import { BootStatus, ReviewEvent, ReviewGrade, UserSettings, Word, WordProgress, WordStatus } from '../types';
+import {
+  BootStatus,
+  CefrLevel,
+  CEFR_LEVELS,
+  ReviewEvent,
+  ReviewGrade,
+  UserSettings,
+  Word,
+  WordProgress,
+  WordStatus,
+} from '../types';
 import { supabase } from '../lib/supabase';
 import { mapUserSettings, mapWord, mapWordProgress } from '../lib/mappers';
 import { applyGrade, INTERVALS_DAYS } from '../lib/srs';
@@ -28,6 +38,7 @@ interface State {
   userSettings: UserSettings | null;
   reviewEvents: ReviewEvent[];
   reviewEventsAvailable: boolean;
+  levelExhausted: boolean;
   authLoading: boolean;
   authError: string | null;
 }
@@ -40,9 +51,10 @@ interface Actions {
   reviewWord: (wordId: string, grade: ReviewGrade) => Promise<void>;
   setWeeklyGoal: (goal: number) => Promise<void>;
   setNotificationSettings: (patch: { enabled?: boolean; startMinute?: number; endMinute?: number }) => Promise<void>;
+  setCefrLevel: (level: CefrLevel | null) => Promise<void>;
   startNewBatch: (
     goal?: number
-  ) => Promise<{ added: number; requested: number; weeklyGoal: number; dailyRate: number }>;
+  ) => Promise<{ added: number; requested: number; weeklyGoal: number; dailyRate: number; levelExhausted: boolean }>;
   resetProgress: () => Promise<void>;
 }
 
@@ -138,8 +150,20 @@ async function insertBatchProgress(userId: string, wordIds: string[]) {
 }
 
 /** Picks `goal` untouched (no progress row) words, weighted by frequency tier, and starts them. */
-async function generateBatch(userId: string, words: Word[], progressByWordId: Record<string, WordProgress>, goal: number) {
-  const untouched = words.filter((w) => !progressByWordId[w.id]);
+function withinLevel(word: Word, maxLevel: CefrLevel | null): boolean {
+  if (!maxLevel) return true;
+  const rank = word.cefr ? CEFR_LEVELS.indexOf(word.cefr as CefrLevel) : -1;
+  return rank !== -1 && rank <= CEFR_LEVELS.indexOf(maxLevel);
+}
+
+async function generateBatch(
+  userId: string,
+  words: Word[],
+  progressByWordId: Record<string, WordProgress>,
+  goal: number,
+  maxLevel: CefrLevel | null = null
+) {
+  const untouched = words.filter((w) => !progressByWordId[w.id] && withinLevel(w, maxLevel));
   const chosen = pickWeightedBatch(untouched, goal);
   const inserted = await insertBatchProgress(userId, chosen.map((w) => w.id));
   const nextProgressByWordId = { ...progressByWordId };
@@ -202,10 +226,23 @@ async function runDailyDrip(
   const toAdd = target - introduced;
 
   if (toAdd <= 0) {
-    return { progressByWordId, settings: nextSettings, added: 0, dailyRate: rate };
+    return { progressByWordId, settings: nextSettings, added: 0, dailyRate: rate, levelExhausted: false };
   }
-  const result = await generateBatch(userId, words, progressByWordId, toAdd);
-  return { progressByWordId: result.progressByWordId, settings: nextSettings, added: result.added, dailyRate: rate };
+  const result = await generateBatch(userId, words, progressByWordId, toAdd, nextSettings.cefrLevel);
+
+  // Ran dry at this level while higher-level words are still sitting untouched — worth telling the user.
+  const levelExhausted =
+    result.added < toAdd &&
+    !!nextSettings.cefrLevel &&
+    words.some((w) => !result.progressByWordId[w.id]);
+
+  return {
+    progressByWordId: result.progressByWordId,
+    settings: nextSettings,
+    added: result.added,
+    dailyRate: rate,
+    levelExhausted,
+  };
 }
 
 async function bootReady(userId: string, email: string | null, set: (partial: Partial<State>) => void) {
@@ -223,6 +260,7 @@ async function bootReady(userId: string, email: string | null, set: (partial: Pa
     userSettings: settings,
     reviewEvents,
     reviewEventsAvailable,
+    levelExhausted: drip.levelExhausted,
     bootStatus: 'ready',
   });
 
@@ -243,6 +281,7 @@ export const useStore = create<Store>()((set, get) => ({
   userSettings: null,
   reviewEvents: [],
   reviewEventsAvailable: false,
+  levelExhausted: false,
   authLoading: false,
   authError: null,
 
@@ -450,10 +489,31 @@ export const useStore = create<Store>()((set, get) => ({
     }
   },
 
+  setCefrLevel: async (level) => {
+    const userId = get().userId;
+    const current = get().userSettings;
+    if (!userId || !current) return;
+
+    set({ userSettings: { ...current, cefrLevel: level } });
+
+    const { data, error } = await supabase
+      .from('user_settings')
+      .update({ cefr_level: level })
+      .eq('user_id', userId)
+      .select()
+      .single();
+    if (error) {
+      set({ userSettings: current, authError: `Kaydedilemedi: ${error.message}` });
+      return;
+    }
+    if (data) set({ userSettings: mapUserSettings(data) });
+  },
+
   startNewBatch: async (goal) => {
     const userId = get().userId;
     const state = get();
-    if (!userId || !state.userSettings) return { added: 0, requested: 0, weeklyGoal: 0, dailyRate: 0 };
+    if (!userId || !state.userSettings)
+      return { added: 0, requested: 0, weeklyGoal: 0, dailyRate: 0, levelExhausted: false };
 
     const weeklyGoal = goal ?? state.userSettings.weeklyGoal;
     const settingsWithGoal = { ...state.userSettings, weeklyGoal };
@@ -462,8 +522,14 @@ export const useStore = create<Store>()((set, get) => ({
     // hands back just today's slice — never the old "dump everything at once" batch.
     const drip = await runDailyDrip(userId, state.words, state.progressByWordId, settingsWithGoal, true);
 
-    set({ progressByWordId: drip.progressByWordId, userSettings: drip.settings });
-    return { added: drip.added, requested: drip.dailyRate, weeklyGoal, dailyRate: drip.dailyRate };
+    set({ progressByWordId: drip.progressByWordId, userSettings: drip.settings, levelExhausted: drip.levelExhausted });
+    return {
+      added: drip.added,
+      requested: drip.dailyRate,
+      weeklyGoal,
+      dailyRate: drip.dailyRate,
+      levelExhausted: drip.levelExhausted,
+    };
   },
 
   resetProgress: async () => {

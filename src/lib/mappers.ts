@@ -42,5 +42,6 @@ export function mapUserSettings(row: any): UserSettings {
     notificationsEnabled: row.notifications_enabled ?? false,
     notifyStartMinute: row.notify_start_minute ?? 540,
     notifyEndMinute: row.notify_end_minute ?? 1260,
+    cefrLevel: row.cefr_level ?? null,
   };
 }

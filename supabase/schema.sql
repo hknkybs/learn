@@ -80,6 +80,8 @@ create table user_settings (
   notifications_enabled boolean not null default false,
   notify_start_minute int not null default 540,  -- 09:00
   notify_end_minute int not null default 1260,  -- 21:00
+  -- Declared level: only introduce new words at or below this CEFR band. null = all levels.
+  cefr_level text check (cefr_level in ('A1', 'A2', 'B1', 'B2', 'C1', 'C2')),
   updated_at timestamptz not null default now()
 );
 

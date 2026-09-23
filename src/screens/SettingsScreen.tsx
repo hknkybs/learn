@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Alert, Platform, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '../state/store';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme';
 import { formatMinuteOfDay, notificationsSupported, parseMinuteOfDay } from '../lib/notifications';
+import { CEFR_LEVELS, CefrLevel } from '../types';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -18,6 +19,8 @@ export function SettingsScreen() {
   const startNewBatch = useStore((s) => s.startNewBatch);
   const resetProgress = useStore((s) => s.resetProgress);
   const setNotificationSettings = useStore((s) => s.setNotificationSettings);
+  const setCefrLevel = useStore((s) => s.setCefrLevel);
+  const levelExhausted = useStore((s) => s.levelExhausted);
   const authError = useStore((s) => s.authError);
   const signOut = useStore((s) => s.signOut);
 
@@ -58,6 +61,14 @@ export function SettingsScreen() {
   }
 
   const untouchedCount = words.filter((w) => !progressByWordId[w.id]).length;
+  const cefrLevel = userSettings?.cefrLevel ?? null;
+  const remainingAtLevel = useMemo(() => {
+    if (!cefrLevel) return untouchedCount;
+    const maxIdx = CEFR_LEVELS.indexOf(cefrLevel);
+    return words.filter(
+      (w) => !progressByWordId[w.id] && w.cefr && CEFR_LEVELS.indexOf(w.cefr as CefrLevel) <= maxIdx
+    ).length;
+  }, [words, progressByWordId, cefrLevel, untouchedCount]);
   const nextAutoRefresh = userSettings?.batchStartedAt
     ? new Date(userSettings.batchStartedAt + 7 * DAY_MS).toLocaleDateString('tr-TR')
     : null;
@@ -67,10 +78,12 @@ export function SettingsScreen() {
     setCreating(true);
     setResultMessage(null);
     await setWeeklyGoal(goal);
-    const { added, dailyRate, weeklyGoal } = await startNewBatch(goal);
+    const { added, dailyRate, weeklyGoal, levelExhausted: exhausted } = await startNewBatch(goal);
     setCreating(false);
     setResultMessage(
-      added < dailyRate
+      exhausted
+        ? `${added} kelime eklendi. ${cefrLevel} seviyesindeki tüm kelimeler bu kadarmış — üst yazıdan seviyeni yükseltebilirsin.`
+        : added < dailyRate
         ? `${added} kelime eklendi (havuzda daha fazla yeni kelime kalmadı).`
         : `Bugün için ${added} kelime eklendi. 7 güne yayılarak toplam ${weeklyGoal} kelimeye ulaşacak (günde ~${dailyRate}).`
     );
@@ -112,6 +125,39 @@ export function SettingsScreen() {
       <View style={[styles.card, { backgroundColor: colors.surface, ...shadow.card }]}>
         <Text style={[styles.label, { color: colors.textMuted }]}>Kelime dağarcığı</Text>
         <Text style={[styles.value, { color: colors.text }]}>{words.length} kelime · {untouchedCount} henüz başlanmadı</Text>
+      </View>
+
+      <View style={[styles.card, { backgroundColor: colors.surface, ...shadow.card }]}>
+        <Text style={[styles.label, { color: colors.textMuted }]}>Seviyen</Text>
+        <View style={styles.levelRow}>
+          <TouchableOpacity
+            style={[styles.levelChip, { backgroundColor: !cefrLevel ? colors.primary : colors.surfaceMuted }]}
+            onPress={() => setCefrLevel(null)}
+          >
+            <Text style={{ color: !cefrLevel ? '#FFFFFF' : colors.textMuted, fontWeight: '700', fontSize: 13 }}>Hepsi</Text>
+          </TouchableOpacity>
+          {CEFR_LEVELS.map((level) => (
+            <TouchableOpacity
+              key={level}
+              style={[styles.levelChip, { backgroundColor: cefrLevel === level ? colors.primary : colors.surfaceMuted }]}
+              onPress={() => setCefrLevel(level)}
+            >
+              <Text style={{ color: cefrLevel === level ? '#FFFFFF' : colors.textMuted, fontWeight: '700', fontSize: 13 }}>
+                {level}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+        <Text style={[styles.hint, { color: colors.textMuted }]}>
+          {cefrLevel
+            ? `${cefrLevel} ve altında henüz başlanmamış ${remainingAtLevel} kelime var. Yeni kelimeler sadece bu seviyeden seçilir.`
+            : 'Tüm seviyelerden kelime seçiliyor.'}
+        </Text>
+        {cefrLevel && levelExhausted ? (
+          <Text style={[styles.result, { color: colors.accent }]}>
+            🎉 {cefrLevel} seviyesindeki tüm kelimeler bitti! İstersen bir üst seviyeye geç.
+          </Text>
+        ) : null}
       </View>
 
       <View style={[styles.card, { backgroundColor: colors.surface, ...shadow.card }]}>
@@ -303,5 +349,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: 8,
     marginLeft: 'auto',
+  },
+  levelRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.xs,
+    marginTop: spacing.xs,
+    marginBottom: spacing.sm,
+  },
+  levelChip: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: 8,
+    borderRadius: radius.pill,
   },
 });
