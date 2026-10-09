@@ -550,6 +550,7 @@ export const useStore = create<Store>()((set, get) => ({
     if (get().reviewEventsAvailable) {
       await supabase.from('review_events').delete().eq('user_id', userId);
     }
+    await supabase.from('course_progress').delete().eq('user_id', userId);
 
     set({ progressByWordId: {}, reviewEvents: [], userSettings: mapUserSettings(data) });
   },

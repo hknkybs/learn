@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Alert, Platform, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '../state/store';
+import { useCourseStore } from '../state/courseStore';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme';
 import { formatMinuteOfDay, notificationsSupported, parseMinuteOfDay } from '../lib/notifications';
@@ -91,12 +92,13 @@ export function SettingsScreen() {
 
   function handleReset() {
     const message =
-      'Bildiklerin, öğrendiklerin ve haftalık listen dahil tüm ilerlemen silinecek. Kelime bankasının kendisi etkilenmez. Emin misin?';
+      'Bildiklerin, öğrendiklerin, haftalık listen ve Öğren sekmesindeki ünite ilerlemen dahil tüm ilerlemen silinecek. Kelime bankasının kendisi etkilenmez. Emin misin?';
 
     const doReset = async () => {
       setResetting(true);
       setResultMessage(null);
       await resetProgress();
+      useCourseStore.getState().reset();
       setResetting(false);
       setResultMessage('Tüm ilerleme sıfırlandı.');
     };

@@ -9,6 +9,12 @@ import { WordListScreen } from '../screens/WordListScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { WordDetailScreen } from '../screens/WordDetailScreen';
 import { ReviewScreen } from '../screens/ReviewScreen';
+import { LearnScreen } from '../screens/LearnScreen';
+import { LevelScreen } from '../screens/LevelScreen';
+import { UnitScreen } from '../screens/UnitScreen';
+import { TopicScreen } from '../screens/TopicScreen';
+import { UnitWordsScreen } from '../screens/UnitWordsScreen';
+import { QuizScreen } from '../screens/QuizScreen';
 import { useTheme } from '../theme/ThemeContext';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -16,12 +22,14 @@ const Tab = createBottomTabNavigator<MainTabParamList>();
 
 const TAB_ICONS: Record<keyof MainTabParamList, string> = {
   Home: '🏠',
+  Learn: '🎓',
   Words: '📚',
   Settings: '⚙️',
 };
 
 const TAB_TITLES: Record<keyof MainTabParamList, string> = {
   Home: 'Ana Sayfa',
+  Learn: 'Öğren',
   Words: 'Kelimeler',
   Settings: 'Ayarlar',
 };
@@ -40,6 +48,7 @@ function MainTabs() {
       })}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
+      <Tab.Screen name="Learn" component={LearnScreen} />
       <Tab.Screen name="Words" component={WordListScreen} />
       <Tab.Screen name="Settings" component={SettingsScreen} />
     </Tab.Navigator>
@@ -73,6 +82,11 @@ export function RootNavigator() {
         <Stack.Screen name="Tabs" component={MainTabs} options={{ headerShown: false }} />
         <Stack.Screen name="WordDetail" component={WordDetailScreen} options={{ title: 'Kelime' }} />
         <Stack.Screen name="Review" component={ReviewScreen} options={{ title: 'Tekrar', headerShown: false }} />
+        <Stack.Screen name="Level" component={LevelScreen} options={{ title: 'Seviye' }} />
+        <Stack.Screen name="Unit" component={UnitScreen} options={{ title: 'Ünite' }} />
+        <Stack.Screen name="Topic" component={TopicScreen} options={{ title: 'Konu' }} />
+        <Stack.Screen name="UnitWords" component={UnitWordsScreen} options={{ title: 'Kelimeler' }} />
+        <Stack.Screen name="Quiz" component={QuizScreen} options={{ title: 'Test' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
